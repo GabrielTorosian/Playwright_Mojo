@@ -11,6 +11,7 @@
 #   pytest tests/test_login.py      — один файл
 #   pytest -k "test_successful"     — по имени теста
 
+import allure
 import pytest
 
 # ── Настройки браузера ───────────────────────────────────────────────────────
@@ -74,3 +75,21 @@ def logged_in_page(page, base_url, credentials):
     page.set_default_navigation_timeout(30000)    # 30 сек таймаут для навигации (goto, wait_for_url)
     login(page, base_url, credentials["email"], credentials["password"])
     yield page
+
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome.get_result()
+    setattr(item, "rep_" + rep.when, rep)
+
+
+@pytest.fixture(autouse=True)
+def attach_screenshot_on_failure(request, page):
+    yield
+    if request.node.rep_call.failed:
+        try:
+            screenshot = page.screenshot()
+            allure.attach(screenshot, name="Failure screenshot", attachment_type=allure.attachment_type.PNG)
+        except Exception:
+            pass
