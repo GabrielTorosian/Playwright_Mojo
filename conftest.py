@@ -1,25 +1,8 @@
 # conftest.py
-#
-# Главный конфиг Playwright.
-# pytest-playwright автоматически создаёт фикстуры: browser, context, page.
-# Здесь мы их настраиваем и добавляем свои.
-#
-# ЗАПУСК:
-#   pytest                          — все тесты (headless)
-#   pytest --headed                 — с видимым браузером
-#   pytest -m login                 — только логин тесты
-#   pytest tests/test_login.py      — один файл
-#   pytest -k "test_successful"     — по имени теста
-
 import allure
 import pytest
 
-# ── Настройки браузера ───────────────────────────────────────────────────────
-
-# URL приложения
 BASE_URL = "https://lb11.mojosells.com"
-
-# Учётные данные
 EMAIL = "gabik31+0109@ukr.net"
 PASSWORD = "123456"
 
@@ -69,18 +52,16 @@ def pytest_runtest_makereport(item, call):
     rep = outcome.get_result()
     setattr(item, "rep_" + rep.when, rep)
 
-
-@pytest.fixture(autouse=True)
-def attach_screenshot_on_failure(request, page):
-    yield
-    rep_call = getattr(request.node, "rep_call", None)
-    if rep_call and rep_call.when == "call" and rep_call.outcome != "passed":
-        try:
-            screenshot = page.screenshot()
-            allure.attach(
-                screenshot,
-                name="Failure screenshot",
-                attachment_type=allure.attachment_type.PNG
-            )
-        except Exception:
-            pass
+    # Делаем скриншот прямо здесь пока страница ещё открыта
+    if call.when == "call" and rep.outcome != "passed":
+        page = item.funcargs.get("page") or item.funcargs.get("logged_in_page")
+        if page:
+            try:
+                screenshot = page.screenshot()
+                allure.attach(
+                    screenshot,
+                    name="Failure screenshot",
+                    attachment_type=allure.attachment_type.PNG
+                )
+            except Exception:
+                pass
