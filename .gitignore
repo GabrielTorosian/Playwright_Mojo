@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Pytest
+.pytest_cache/
+
+# IDE
+.idea/
+.vscode/
+
+# Debug screenshots
+debug*.png
+
+# Claude Code
+.claude/
+
+# OS
+Thumbs.db
+.DS_Store
