@@ -1,0 +1,65 @@
+name: Mojo E2E Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run every day at 6:00 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      marker:
+        description: 'pytest marker to run (e.g. login, navigation, contact). Leave empty for all.'
+        required: false
+        default: ''
+
+jobs:
+  test:
+    runs-on: self-hosted
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt --break-system-packages
+
+      - name: Install Playwright browsers
+        run: |
+          python3 -m playwright install chromium
+          python3 -m playwright install-deps chromium
+
+      - name: Run tests
+        run: |
+          if [ -n "${{ github.event.inputs.marker }}" ]; then
+            pytest -m "${{ github.event.inputs.marker }}" \
+              --alluredir=allure-results \
+              --screenshot=only-on-failure \
+              --video=retain-on-failure
+          else
+            pytest \
+              --alluredir=allure-results \
+              --screenshot=only-on-failure \
+              --video=retain-on-failure
+          fi
+
+      - name: Upload Allure results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results
+          path: allure-results/
+          retention-days: 30
+
+      - name: Upload screenshots/videos on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-artifacts
+          path: |
+            test-results/
+          retention-days: 7
