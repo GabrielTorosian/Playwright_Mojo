@@ -42,7 +42,15 @@ def login(page: Page, base_url: str, email: str, password: str):
 
 def logout(page: Page):
     """Нажимает кнопку Logout и ждёт появления страницы логина."""
-    page.click('button[data-tip="Logout"]')
+    # Иногда кнопку перекрывает Product Fruits overlay/tutorial layer.
+    # Если он есть — скрываем его и кликаем logout принудительно.
+    page.evaluate("""
+        () => {
+            const pf = document.querySelector('.productfruits--container');
+            if (pf) pf.style.pointerEvents = 'none';
+        }
+    """)
+    page.locator('button[data-tip="Logout"]').click(force=True)
     page.wait_for_selector('input[name="password"]', timeout=15000)
 
 
