@@ -9,7 +9,11 @@
 import time
 import pytest
 from playwright.sync_api import expect
-from pages.mojo_helpers import go_to_data_dialer
+from pages.mojo_helpers import login, go_to_data_dialer
+
+BASE_URL = "https://lb11.mojosells.com"
+EMAIL = "gabik31+0109@ukr.net"
+PASSWORD = "123456"
 
 TEST_LIST = "autotest_suite2"
 
@@ -43,7 +47,21 @@ def open_list_rules(page):
 @pytest.mark.list_rules
 class TestListRules:
 
-    def test_create_list_rule(self, logged_in_page):
+    @pytest.fixture(scope="class")
+    def shared_page(self, browser):
+        """Один логин на весь класс — оба теста работают в одной сессии."""
+        context = browser.new_context(
+            no_viewport=True,
+            ignore_https_errors=True,
+        )
+        page = context.new_page()
+        page.set_default_timeout(15000)
+        page.set_default_navigation_timeout(30000)
+        login(page, BASE_URL, EMAIL, PASSWORD)
+        yield page
+        context.close()
+
+    def test_create_list_rule(self, shared_page):
         """
         Создаём IFTT-правило и проверяем сохранение.
         IF Last Call Result = Contact -> THEN Move To Group autotest_group_suite2
@@ -54,7 +72,7 @@ class TestListRules:
         5. Проверяем что правило отображается в панели
         6. Cleanup: очищаем правила
         """
-        page = logged_in_page
+        page = shared_page
         open_list_rules(page)
 
         # ── Очищаем старые правила если есть ──
@@ -132,7 +150,13 @@ class TestListRules:
             timeout=10000,
         )
 
-    def test_list_rules_panel_smoke(self, logged_in_page):
+        # Закрываем панель List Rules чтобы не блокировать следующий тест
+        cancel = page.locator('xpath=//button[contains(text(),"Cancel")]')
+        if cancel.count() > 0 and cancel.is_visible():
+            cancel.click()
+            time.sleep(0.5)
+
+    def test_list_rules_panel_smoke(self, shared_page):
         """
         Smoke-тест панели List Rules.
         1. Открываем панель List Rules
@@ -140,7 +164,7 @@ class TestListRules:
         3. Добавляем правило (Add Rule) — строка появилась
         4. Отменяем (Cancel) — панель закрывается
         """
-        page = logged_in_page
+        page = shared_page
         open_list_rules(page)
 
         # Проверяем что кнопки управления присутствуют
