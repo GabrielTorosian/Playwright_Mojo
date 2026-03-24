@@ -45,9 +45,10 @@ jobs:
       - name: Generate Allure report
         if: always()
         run: |
-          cp -r /var/www/glaive/mojo-qa-report/history allure-results/history 2>/dev/null || true
-          allure generate allure-results --clean -o /var/www/glaive/mojo-qa-report
-          cp allure-results/*-attachment.* /var/www/glaive/mojo-qa-report/data/attachments/ 2>/dev/null || true
+          WORK_DIR="$(pwd)"
+          cp -r /var/www/glaive/mojo-qa-report/history "${WORK_DIR}/allure-results/history" 2>/dev/null || true
+          allure generate "${WORK_DIR}/allure-results" --clean -o /var/www/glaive/mojo-qa-report
+          cp "${WORK_DIR}/allure-results"/*-attachment.* /var/www/glaive/mojo-qa-report/data/attachments/ 2>/dev/null || true
 
       - name: Upload Allure results
         uses: actions/upload-artifact@v4
