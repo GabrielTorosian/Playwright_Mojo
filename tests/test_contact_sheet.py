@@ -349,6 +349,80 @@ class TestContactSheet:
         history_items = page.locator('[class*="HistoryItem"], [class*="history-item"], [class*="History"] tr')
         print(f"ℹ Записей в истории: {history_items.count()}")
 
+    def test_activities_tab(self, shared_page):
+        """
+        Вкладка Activities: проверяем наличие заголовков 'Activities' и 'Information'.
+        """
+        page = shared_page
+        dismiss_all_overlays(page)
+        navigate_to_data_dialer(page)
+        search_and_open_contact(page, CONTACT_NAME)
+
+        page.click('xpath=//button[contains(text(),"Activities")]')
+        time.sleep(1)
+        expect(page.locator('text="Activities:"')).to_be_visible(timeout=10000)
+        expect(page.locator('text="Information:"')).to_be_visible(timeout=5000)
+        print("✓ Вкладка Activities: заголовки 'Activities:' и 'Information:' найдены")
+
+    def test_emails_tab(self, shared_page):
+        """
+        Вкладка Emails: проверяем наличие заголовка 'Emails'.
+        """
+        page = shared_page
+        dismiss_all_overlays(page)
+        navigate_to_data_dialer(page)
+        search_and_open_contact(page, CONTACT_NAME)
+
+        page.click('xpath=//button[contains(text(),"Emails")]')
+        time.sleep(1)
+        expect(page.locator('text="Emails:"')).to_be_visible(timeout=10000)
+        print("✓ Вкладка Emails: заголовок 'Emails:' найден")
+
+    def test_street_view_tab(self, shared_page):
+        """
+        Вкладка Street View: проверяем что Google Street View загружен.
+        """
+        page = shared_page
+        dismiss_all_overlays(page)
+        navigate_to_data_dialer(page)
+        search_and_open_contact(page, CONTACT_NAME)
+
+        page.click('xpath=//button[contains(text(),"Street View")]')
+        time.sleep(1)
+        expect(page.locator('text="Street View:"')).to_be_visible(timeout=10000)
+        # Google Street View рендерит панораму в div.gm-style
+        expect(page.locator('div.gm-style')).to_be_visible(timeout=15000)
+        print("✓ Вкладка Street View: Google Street View загружен")
+
+    def test_action_plans_tab(self, shared_page):
+        """
+        Вкладка Action Plans: проверяем заголовок и кнопку 'Assign Action Plan'.
+        """
+        page = shared_page
+        dismiss_all_overlays(page)
+        navigate_to_data_dialer(page)
+        search_and_open_contact(page, CONTACT_NAME)
+
+        page.click('xpath=//button[contains(text(),"Action Plans")]')
+        time.sleep(1)
+        expect(page.locator('text="Action Plans:"')).to_be_visible(timeout=10000)
+        expect(page.locator('xpath=//button[contains(text(),"Assign Action Plan")]')).to_be_visible(timeout=5000)
+        print("✓ Вкладка Action Plans: заголовок и кнопка 'Assign Action Plan' найдены")
+
+    def test_attachments_tab(self, shared_page):
+        """
+        Attachments: проверяем наличие кнопки 'Choose File'.
+        """
+        page = shared_page
+        dismiss_all_overlays(page)
+        navigate_to_data_dialer(page)
+        search_and_open_contact(page, CONTACT_NAME)
+
+        page.click('xpath=//button[contains(text(),"Attachments")]')
+        time.sleep(1)
+        expect(page.locator('text="Choose File"')).to_be_visible(timeout=10000)
+        print("✓ Вкладка Attachments: кнопка 'Choose File' найдена")
+
     def test_emails_send(self, shared_page):
         """
         Вкладка Emails: отправляем ручное письмо.
