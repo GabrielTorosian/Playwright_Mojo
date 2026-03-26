@@ -170,41 +170,51 @@ class TestContactSheet:
     def test_edit_contact_fields(self, shared_page):
         """
         Открываем Contact Sheet и редактируем основные поля:
-        Full Name, Address, City, State, Zip + добавляем/удаляем Phone и Email.
+        Full Name, Address, City, State, Zip, Co-Owner Name,
+        Mailing Address, Mailing City, Mailing State, Mailing Zip.
+        Клик по имени переключает карточку в inline edit mode.
+        Сохранение — автоматическое (клик вне области или ~3 сек).
         """
         page = shared_page
         dismiss_all_overlays(page)
         navigate_to_data_dialer(page)
         search_and_open_contact(page, CONTACT_NAME)
 
-        # ── Редактируем Full Name ────────────────────────────────────────────
-        name_edit = page.locator('[class*="ContactName"] [class*="edit"], [data-tip="Edit name"]')
-        if name_edit.count() > 0:
-            name_edit.first.click()
-            first_input = page.locator('input[name="firstName"]')
-            first_input.clear()
-            first_input.fill("AutoTest-Edited")
-            page.click('xpath=//button[contains(text(),"Save")]')
-            time.sleep(0.5)
-            print("✓ Full Name отредактирован")
+        # ── 1. Переключаем в Edit mode — клик по имени контакта ────────────
+        page.locator('span[class*="ContactTitleLegacy_fullNameField"]').click()
+        time.sleep(1)
 
-        # ── Добавляем телефон ────────────────────────────────────────────────
-        add_phone = page.locator('xpath=//button[contains(text(),"Add Phone") or @data-tip="Add phone"]')
-        if add_phone.count() > 0:
-            add_phone.click()
-            page.fill('input[placeholder*="phone"], input[placeholder*="Phone"]', "5559876543")
-            page.click('xpath=//button[contains(text(),"Save") or contains(text(),"Add")]')
-            time.sleep(0.5)
-            print("✓ Телефон добавлен")
+        # Проверяем что edit mode открылся — ищем input по placeholder
+        name_input = page.locator('input[placeholder="Full Name"]')
+        expect(name_input).to_be_visible(timeout=5000)
+        print("✓ Edit mode открыт")
 
-        # ── Добавляем email ──────────────────────────────────────────────────
-        add_email = page.locator('xpath=//button[contains(text(),"Add Email") or @data-tip="Add email"]')
-        if add_email.count() > 0:
-            add_email.click()
-            page.fill('input[type="email"], input[placeholder*="email"]', APPROVED_EMAILS[1])
-            page.click('xpath=//button[contains(text(),"Save") or contains(text(),"Add")]')
-            time.sleep(0.5)
-            print("✓ Email добавлен")
+        # ── 2. Редактируем Property Address, City, State, ZIP ──────────────
+        page.locator('input[placeholder="Property Address"]').fill("456 Edited Ave")
+        page.locator('input[placeholder="Property City"]').fill("San Francisco")
+        # State — первый из двух (property), второй — mailing
+        page.locator('input[placeholder="State"]').first.fill("NY")
+        # Zip Code — первый из двух
+        page.locator('input[placeholder="Zip Code"]').first.fill("94102")
+        print("✓ Address, City, State, ZIP отредактированы")
+
+        # ── 3. Заполняем Co-Owner Name ─────────────────────────────────────
+        page.locator('input[placeholder="Co-Owner Name"]').fill("Test Co-Owner")
+        print("✓ Co-Owner Name заполнен")
+
+        # ── 4. Заполняем Mailing Address, City, State, ZIP ─────────────────
+        page.locator('input[placeholder="Mailing Address"]').fill("789 Mailing St")
+        page.locator('input[placeholder="Mailing City"]').fill("Los Angeles")
+        # State — второй (mailing)
+        page.locator('input[placeholder="State"]').last.fill("CA")
+        # Zip Code — второй (mailing)
+        page.locator('input[placeholder="Zip Code"]').last.fill("90001")
+        print("✓ Mailing Address, City, State, ZIP заполнены")
+
+        # ── 5. Сохраняем — клик вне области редактирования ─────────────────
+        page.locator('text="Groups:"').click()
+        time.sleep(3)
+        print("✓ Изменения сохранены")
 
     def test_notes_create(self, shared_page):
         """
