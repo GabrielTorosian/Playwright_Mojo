@@ -420,8 +420,10 @@ class TestContactSheet:
 
         page.click('xpath=//button[contains(text(),"Attachments")]')
         time.sleep(1)
-        expect(page.locator('text="Choose File"')).to_be_visible(timeout=10000)
-        print("✓ Вкладка Attachments: кнопка 'Choose File' найдена")
+        expect(page.locator('text="Attachments:"')).to_be_visible(timeout=10000)
+        # "Choose File" — это стандартный текст браузера для input[type="file"], ищем сам input
+        expect(page.locator('input[type="file"]')).to_be_attached(timeout=10000)
+        print("✓ Вкладка Attachments: заголовок 'Attachments:' и input для загрузки файла найдены")
 
     def test_emails_send(self, shared_page):
         """
