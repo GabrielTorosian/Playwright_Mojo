@@ -41,8 +41,16 @@ TEST_EMAIL = APPROVED_EMAILS[0]
 
 
 def dismiss_all_overlays(page):
-    """Закрывает любые блокирующие оверлеи: react-confirm-alert и ReactModal."""
-    # 1. Warning попап "Are you sure you want to close this contact..."
+    """Закрывает любые блокирующие оверлеи: Toastify, react-confirm-alert, ReactModal."""
+    # 1. Toastify уведомления — могут перекрывать кнопки
+    try:
+        page.evaluate("""
+            () => document.querySelectorAll('.Toastify__toast').forEach(t => t.remove())
+        """)
+    except Exception:
+        pass
+
+    # 2. Warning попап "Are you sure you want to close this contact..."
     confirm_btn = page.locator('#react-confirm-alert button', has_text='Confirm')
     try:
         confirm_btn.click(timeout=2000)
@@ -50,7 +58,7 @@ def dismiss_all_overlays(page):
     except Exception:
         pass
 
-    # 2. ReactModal overlay (любой открытый модал)
+    # 3. ReactModal overlay (любой открытый модал)
     modal_close = page.locator('.ReactModal__Overlay button', has_text='Cancel')
     try:
         modal_close.click(timeout=1000)
@@ -74,12 +82,34 @@ def navigate_to_data_dialer(page):
     page.wait_for_selector("table.Table_tableFixed__qZs5B", timeout=15000)
 
 
+def ensure_contact_open(page, contact_name):
+    """Проверяет что КС открыт для нужного контакта.
+    Сначала закрывает любые оверлеи (ReactModal, react-confirm-alert).
+    Если мы уже на КС — ничего больше не делаем.
+    Если нет (например, после логина или сбоя) — ищем и открываем."""
+    # Сначала всегда закрываем оверлеи — они могут блокировать клики
+    dismiss_all_overlays(page)
+
+    # Проверяем: есть ли имя контакта на странице (КС уже открыт)
+    contact_visible = page.locator(f'text="{contact_name}"').first
+    try:
+        contact_visible.wait_for(state='visible', timeout=2000)
+        # КС уже открыт — ничего не делаем
+        return
+    except Exception:
+        pass
+
+    # КС не открыт — идём через Data Dialer → поиск
+    navigate_to_data_dialer(page)
+    search_and_open_contact(page, contact_name)
+
+
 @pytest.mark.contact_sheet
 class TestContactSheet:
 
     @pytest.fixture(scope="class")
     def shared_page(self, browser):
-        """Один логин на весь класс — все 10 тестов работают в одной сессии."""
+        """Один логин на весь класс — все тесты работают в одной сессии."""
         context = browser.new_context(
             no_viewport=True,
             ignore_https_errors=True,
@@ -167,6 +197,10 @@ class TestContactSheet:
         expect(page.locator(f'text="{CONTACT_NAME}"').first).to_be_visible(timeout=10000)
         print(f"✓ Контакт '{CONTACT_NAME}' создан в листе 'autotest_suite1'")
 
+    # ══════════════════════════════════════════════════════════════════
+    # Начиная отсюда КС уже открыт — не переоткрываем без необходимости
+    # ══════════════════════════════════════════════════════════════════
+
     def test_edit_contact_fields(self, shared_page):
         """
         Открываем Contact Sheet и редактируем основные поля:
@@ -176,9 +210,7 @@ class TestContactSheet:
         Сохранение — автоматическое (клик вне области или ~3 сек).
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         # ── 1. Переключаем в Edit mode — клик по имени контакта ────────────
         page.locator('span[class*="ContactTitleLegacy_fullNameField"]').click()
@@ -219,48 +251,34 @@ class TestContactSheet:
     def test_notes_create(self, shared_page):
         """
         Создаём записку (Note) через текстовое поле в Contact Sheet.
+        1. Вводим текст в textarea "Type Note Here..."
+        2. Нажимаем кнопку "Post"
+        3. Проверяем что заметка появилась в списке
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
-        # Ищем textarea для заметок
-        note_area = page.locator(
-            'textarea[placeholder*="note"], textarea[placeholder*="Note"], '
-            'textarea[placeholder*="comment"], textarea[class*="note"]'
-        )
-        if note_area.count() == 0:
-            # Ищем кнопку Add Note
-            add_note_btn = page.locator(
-                'xpath=//button[@data-tip="Add note" or contains(text(),"Add Note") or contains(text(),"Note")]'
-            )
-            if add_note_btn.count() > 0:
-                add_note_btn.first.click()
-                time.sleep(0.5)
-                note_area = page.locator(
-                    'textarea[placeholder*="note"], textarea[placeholder*="Note"], textarea'
-                )
+        NOTE_TEXT = "autotest — note created by automation"
 
-        if note_area.count() > 0:
-            note_area.first.fill("autotest — note created by automation")
-            save_btn = page.locator('xpath=//button[contains(text(),"Save") or contains(text(),"Add")]')
-            if save_btn.count() > 0:
-                save_btn.first.click()
-                time.sleep(1)
-            print("✓ Note создан")
-        else:
-            print("ℹ Notes textarea не найдена — пропускаем")
-            pytest.skip("Notes textarea not found in Contact Sheet")
+        # ── 1. Вводим текст заметки ──────────────────────────────────────
+        note_area = page.locator('textarea[placeholder="Type Note Here..."]')
+        expect(note_area).to_be_visible(timeout=5000)
+        note_area.fill(NOTE_TEXT)
+
+        # ── 2. Нажимаем "Post" ───────────────────────────────────────────
+        page.locator('button', has_text='Post').click()
+        time.sleep(1)
+
+        # ── 3. Проверяем что заметка сохранилась в списке ─────────────────
+        expect(page.locator(f'text="{NOTE_TEXT}"')).to_be_visible(timeout=5000)
+        print("✓ Note создан и отображается в списке")
 
     def test_misc_fields(self, shared_page):
         """
         Вкладка Misc: заполняем несколько полей, вносим изменения.
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         # Переходим на вкладку Misc
         page.click('xpath=//button[contains(text(),"Misc")]')
@@ -289,9 +307,7 @@ class TestContactSheet:
         3. Создаём Follow-Up Call с recurring
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         # Открываем вкладку Activities
         page.click('xpath=//button[contains(text(),"Activities") or contains(text(),"Activity")]')
@@ -304,6 +320,8 @@ class TestContactSheet:
         date_input = page.locator('input[type="date"], input[placeholder*="date"]')
         if date_input.count() > 0:
             date_input.first.fill("2026-04-01")
+        # Убираем Toastify уведомления — они могут перекрывать кнопку Save
+        page.evaluate("() => document.querySelectorAll('.Toastify__toast').forEach(t => t.remove())")
         page.click('xpath=//button[contains(text(),"Save") or contains(text(),"Create")]')
         time.sleep(1)
         print("✓ Appointment создан")
@@ -314,6 +332,7 @@ class TestContactSheet:
         task_name = page.locator('input[placeholder*="task"], input[name="title"]')
         if task_name.count() > 0:
             task_name.first.fill("autotest task")
+        page.evaluate("() => document.querySelectorAll('.Toastify__toast').forEach(t => t.remove())")
         page.click('xpath=//button[contains(text(),"Save") or contains(text(),"Create")]')
         time.sleep(1)
         print("✓ Task создан")
@@ -325,6 +344,7 @@ class TestContactSheet:
         if recurring_toggle.count() > 0:
             recurring_toggle.first.click()
             print("✓ Recurring включён")
+        page.evaluate("() => document.querySelectorAll('.Toastify__toast').forEach(t => t.remove())")
         page.click('xpath=//button[contains(text(),"Save") or contains(text(),"Create")]')
         time.sleep(1)
         print("✓ Follow-Up Call создан")
@@ -334,9 +354,7 @@ class TestContactSheet:
         Вкладка History: проверяем что история звонков/активностей отображается.
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         page.click('xpath=//button[contains(@class,"Tab_tab") and contains(text(),"History")]')
         time.sleep(1)
@@ -354,9 +372,7 @@ class TestContactSheet:
         Вкладка Activities: проверяем наличие заголовков 'Activities' и 'Information'.
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         page.click('xpath=//button[contains(text(),"Activities")]')
         time.sleep(1)
@@ -369,9 +385,7 @@ class TestContactSheet:
         Вкладка Emails: проверяем наличие заголовка 'Emails'.
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         page.click('xpath=//button[contains(text(),"Emails")]')
         time.sleep(1)
@@ -383,9 +397,7 @@ class TestContactSheet:
         Вкладка Street View: проверяем что Google Street View загружен.
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         page.click('xpath=//button[contains(text(),"Street View")]')
         time.sleep(1)
@@ -399,9 +411,7 @@ class TestContactSheet:
         Вкладка Action Plans: проверяем заголовок и кнопку 'Assign Action Plan'.
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         page.click('xpath=//button[contains(text(),"Action Plans")]')
         time.sleep(1)
@@ -411,12 +421,10 @@ class TestContactSheet:
 
     def test_attachments_tab(self, shared_page):
         """
-        Attachments: проверяем наличие кнопки 'Choose File'.
+        Attachments: проверяем наличие заголовка и input для загрузки файла.
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         page.click('xpath=//button[contains(text(),"Attachments")]')
         time.sleep(1)
@@ -430,9 +438,7 @@ class TestContactSheet:
         Вкладка Emails: отправляем ручное письмо.
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         page.click('xpath=//button[contains(text(),"Emails") or contains(text(),"Email")]')
         page.wait_for_selector('[class*="Emails"], [class*="email"]', timeout=10000)
@@ -460,9 +466,7 @@ class TestContactSheet:
         Вкладка Action Plans: назначаем Action Plan.
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         page.click('xpath=//button[contains(@class,"Tab_tab") and contains(text(),"Action Plans")]')
         time.sleep(1)
@@ -484,9 +488,7 @@ class TestContactSheet:
         Lead Sheet: заполняем форму и отправляем письмом.
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         page.click('xpath=//button[contains(@class,"SecondaryContactTabs") and contains(text(),"Lead Sheet")]')
         time.sleep(0.8)
@@ -508,9 +510,7 @@ class TestContactSheet:
         Attachments: проверяем что вкладка открывается и отображает контент.
         """
         page = shared_page
-        dismiss_all_overlays(page)
-        navigate_to_data_dialer(page)
-        search_and_open_contact(page, CONTACT_NAME)
+        ensure_contact_open(page, CONTACT_NAME)
 
         page.click('xpath=//button[contains(@class,"Tab_tab") and contains(text(),"Attachments")]')
         time.sleep(0.8)
