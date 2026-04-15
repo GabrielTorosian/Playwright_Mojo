@@ -9,7 +9,19 @@
 
 import time
 import pytest
+from datetime import datetime, timedelta
 from pages.mojo_helpers import go_to_data_dialer, search_and_open_contact, logout
+
+
+def dismiss_appointment_reminder(page):
+    """Закрывает попап-напоминание 'Appointment for: ...' если он перекрывает UI."""
+    try:
+        dismiss_btn = page.locator('button', has_text='Dismiss')
+        if dismiss_btn.first.is_visible(timeout=1000):
+            dismiss_btn.first.click()
+            time.sleep(0.5)
+    except Exception:
+        pass
 
 # ── Селекторы кнопок создания активностей ────────────────────────────────────
 ACTIVITY_BUTTONS = {
@@ -46,6 +58,9 @@ def create_activity_from_cs(page, activity_type: str):
     go_to_data_dialer(page)
     search_and_open_contact(page, CONTACT_NAME)
 
+    # Убрать Appointment reminder если перекрывает
+    dismiss_appointment_reminder(page)
+
     # Нажать кнопку создания активности
     page.click(config["create_btn"])
     page.wait_for_selector("div.GenericModal_mainContainer__Wy5u3")
@@ -57,6 +72,9 @@ def create_activity_from_cs(page, activity_type: str):
 
     # Пауза для внутренней валидации формы (без неё активность не сохраняется)
     time.sleep(2)
+
+    # Убрать Appointment reminder если перекрывает кнопку
+    dismiss_appointment_reminder(page)
 
     # Нажать Confirm
     page.click("button.GenericModal_button__lmCtH.GenericModal_confirmButton__BAaWj")
@@ -76,6 +94,7 @@ def go_to_calendar(page):
     Переход в Calendar из Contact Sheet.
     Обрабатывает диалог "unsaved changes".
     """
+    dismiss_appointment_reminder(page)
     page.click('xpath=//div[text()="Calendar"]')
     # Подтвердить "unsaved changes" если появился
     page.click("button.confirmAlert_actionButton__gdvBM.confirmAlert_actionButtonConfirm__ARIc7")
