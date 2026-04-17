@@ -1,10 +1,10 @@
-# tests/test_login.py
+# tests/test_01_login.py
 #
 # Тесты логина/логаута.
 # Эквивалент: features/login.feature
 #
 # Запуск:
-#   pytest tests/test_login.py --headed
+#   pytest tests/test_01_login.py --headed
 
 import pytest
 from playwright.sync_api import expect

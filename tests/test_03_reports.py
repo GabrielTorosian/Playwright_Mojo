@@ -1,4 +1,4 @@
-# tests/test_reports.py
+# tests/test_03_reports.py
 #
 # Блок: Reports
 # Покрывает:
@@ -13,7 +13,7 @@
 # Один логин → все тесты → один контекст.
 #
 # Запуск:
-#   pytest tests/test_reports.py --headed
+#   pytest tests/test_03_reports.py --headed
 
 import pytest
 import time

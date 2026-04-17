@@ -1,4 +1,4 @@
-# tests/test_navigation.py
+# tests/test_02_navigation.py
 #
 # Навигация по всем основным страницам, настройкам, интеграциям и аккаунту.
 # Эквивалент: features/navigation_main_pages.feature + navigation_account_section.feature
@@ -6,7 +6,7 @@
 # Один логин → все страницы → один логаут.
 #
 # Запуск:
-#   pytest tests/test_navigation.py --headed
+#   pytest tests/test_02_navigation.py --headed
 
 import pytest
 from pages.mojo_helpers import logout
