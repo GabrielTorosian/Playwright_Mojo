@@ -23,7 +23,7 @@ CSV_PATH = os.path.join(
 )
 
 NEXT_BTN = 'xpath=//button[@class="Button_btn__W1TTO Button_btnBlue__DoHY2" and text()="Next"]'
-LIST_NAME = "0101 auto new1_DEL"
+LIST_NAME = "0101 auto new1 DEL"
 
 
 @pytest.mark.import_file

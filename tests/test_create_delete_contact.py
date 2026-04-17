@@ -40,7 +40,7 @@ class TestCreateDeleteContact:
 
         # ── 4. Создать новую группу ──────────────────────────────────────
         page.click('button#select_field_3_add_btn')
-        page.fill('input[placeholder="Enter Name"]', 'Autotest CrContact group')
+        page.fill('input[placeholder="Enter Name"]', 'Autotest CrContact group DEL')
         page.click('xpath=//button[text()="Save"]')
 
         # Ждём пока группа появится в списке (это надёжнее чем ждать скрытия overlay)
