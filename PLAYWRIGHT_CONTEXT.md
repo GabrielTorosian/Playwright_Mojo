@@ -84,7 +84,7 @@ pytest
 pytest --headed
 
 # Single file
-pytest tests/test_login.py --headed
+pytest tests/test_01_login.py --headed
 
 # By marker
 pytest -m login --headed

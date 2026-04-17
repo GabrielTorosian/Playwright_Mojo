@@ -53,7 +53,7 @@ pytest
 pytest --headed
 
 # Один файл
-pytest tests/test_login.py --headed
+pytest tests/test_01_login.py --headed
 
 # По маркеру
 pytest -m login
