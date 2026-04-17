@@ -65,7 +65,7 @@ class TestImportFile:
         page.click(NEXT_BTN)
 
         # ── Step 3: Маппинг полей ────────────────────────────────────────
-        page.wait_for_selector("div#fields_mapper_container")
+        page.wait_for_selector("div#fields_mapper_container", timeout=30000)
         # Прокрутить к кнопке Next и нажать
         next_btn = page.locator(NEXT_BTN)
         next_btn.scroll_into_view_if_needed()

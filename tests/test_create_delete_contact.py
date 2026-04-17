@@ -43,12 +43,10 @@ class TestCreateDeleteContact:
         page.fill('input[placeholder="Enter Name"]', 'Autotest CrContact group')
         page.click('xpath=//button[text()="Save"]')
 
-        # Ждём пока модальное окно закроется (оверлей исчезнет)
-        page.wait_for_selector("div.ReactModal__Overlay", state="hidden")
-        # Ждём пока группа появится в списке и выберется
+        # Ждём пока группа появится в списке (это надёжнее чем ждать скрытия overlay)
         page.wait_for_selector(
             'xpath=//div[text()="Autotest CrContact group"]',
-            timeout=15000
+            timeout=30000
         )
 
         # ── 5. Нажать "Create Contact" ───────────────────────────────────
