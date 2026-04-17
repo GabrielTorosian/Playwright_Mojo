@@ -45,7 +45,7 @@ class TestCreateDeleteContact:
 
         # Ждём пока группа появится в списке (это надёжнее чем ждать скрытия overlay)
         page.wait_for_selector(
-            'xpath=//div[text()="Autotest CrContact group"]',
+            'xpath=//div[text()="Autotest CrContact group DEL"]',
             timeout=30000
         )
 
@@ -89,7 +89,7 @@ class TestCreateDeleteContact:
         page.wait_for_selector('xpath=//div[text()="Autocreate Contact01"]', state="hidden")
 
         # ── 8. Удалить группу ────────────────────────────────────────────
-        delete_group(page, "Autotest CrContact group")
+        delete_group(page, "Autotest CrContact group DEL")
 
         # ── 9. Логаут ────────────────────────────────────────────────────
         logout(page)
