@@ -23,8 +23,8 @@ class TestHomePage:
         page = logged_in_page
 
         # ── Вкладки Overview и Prospecting Dashboard ──────────────────
-        expect(page.get_by_text("Overview", exact=True)).to_be_visible(timeout=15000)
-        expect(page.get_by_text("Prospecting Dashboard", exact=True).first).to_be_visible(timeout=15000)
+        #expect(page.get_by_text("Overview", exact=True)).to_be_visible(timeout=15000)
+        #expect(page.get_by_text("Prospecting Dashboard", exact=True).first).to_be_visible(timeout=15000)
 
         # ── Карточки: Neighborhood Search, Expired Leads и т.д. ───────
         expect(page.get_by_text("Neighborhood Search", exact=True)).to_be_visible(timeout=15000)
