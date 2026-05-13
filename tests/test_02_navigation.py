@@ -182,7 +182,7 @@ class TestNavigation:
             page,
             'xpath=//img[@alt="Settings"]',
             'div.CallerIDMojoVoiceView_whitelistingLegendContainer__CbfXq',
-            "Caller ID / Mojo Caller ID"
+            "Manage Your Caller ID's"
         )
 
         # Пройти по всем страницам настроек
