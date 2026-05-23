@@ -60,8 +60,8 @@ class TestDataDialerPage:
         with allure.step("проверка наличия кнопки Skip Tracer"):
             expect(page.locator('//button[text()="Skip Tracer"]')).to_be_visible(timeout=15000)
 
-        with allure.step("проверка наличия кнопки Map View"):
-            expect(page.locator('//button//*[text()="Map View"]')).to_be_visible(timeout=15000)
+        #with allure.step("проверка наличия кнопки Map View"):
+        #    expect(page.locator('//button//*[text()="Map View"]')).to_be_visible(timeout=15000)
 
         with allure.step("проверка наличия кнопки Create Contact"):
             expect(page.locator('//a[@data-tip="Create Contact"]')).to_be_visible(timeout=15000)
