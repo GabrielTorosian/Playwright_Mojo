@@ -106,8 +106,8 @@ def dismiss_react_modal(page):
         overlay = page.locator("div.ReactModal__Overlay--after-open")
         if overlay.count() == 0 or not overlay.first.is_visible():
             return
-        # Пробуем закрыть через кнопки внутри модала (Cancel / Close / No / OK)
-        for label in ('Cancel', 'Close', 'No', 'OK', 'Done'):
+        # Пробуем закрыть через кнопки внутри модала
+        for label in ('Cancel', 'Close', 'No', 'OK', 'Done', 'Try Again', 'Dismiss'):
             btn = overlay.locator(f'button:has-text("{label}")')
             if btn.count() > 0:
                 btn.first.click(force=True)
@@ -158,6 +158,10 @@ def open_call_wizard(page):
     # Ждём появления зелёных кнопок Start
     page.wait_for_selector('a[class*="IconButton_green"]', timeout=15000, state="visible")
     time.sleep(0.5)
+
+    # Мог появиться GenericModal (ошибка сервиса, "Try Again" и т.п.) —
+    # закрываем его, чтобы он не блокировал последующие клики
+    dismiss_react_modal(page)
 
 
 def close_call_wizard(page):
@@ -592,9 +596,12 @@ class TestDialingSessions:
 
         verify_caller_id(page)
 
+        dismiss_react_modal(page)
+        dismiss_toasts(page)
+
         start_btn = page.locator('a:has-text("Start Click To Call")').first
         assert start_btn.is_visible(), "Кнопка Start Click To Call не видна"
-        start_btn.click()
+        start_btn.click(force=True)
         time.sleep(2)
 
         page.wait_for_selector(
