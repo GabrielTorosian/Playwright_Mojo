@@ -88,9 +88,33 @@ def close_skip_tracer_popup(page: Page):
 # НАВИГАЦИЯ
 # ══════════════════════════════════════════════════════════════════════════════
 
+def dismiss_toasts(page: Page):
+    """Принудительно убирает все Toastify/GlobalNotification тосты из DOM."""
+    try:
+        page.evaluate("""
+            () => document.querySelectorAll(
+                '.Toastify__toast, .GlobalNotification_customToast__Wjb1v, ' +
+                '.GlobalNotification_GlobalNotificationBtns__YtrqJ'
+            ).forEach(el => el.remove())
+        """)
+        time.sleep(0.2)
+    except Exception:
+        pass
+
+
+def wait_for_toast_gone(page: Page, timeout: int = 8000):
+    """Ждёт пока все Toastify-тосты исчезнут с экрана."""
+    try:
+        page.wait_for_selector(".Toastify__toast", state="hidden", timeout=timeout)
+    except Exception:
+        pass
+
+
 def go_to_data_dialer(page: Page):
     """Переходит на страницу Data Dialer и ждёт загрузки таблицы."""
-    page.click('xpath=//button[@id="menu-button-my-data"]')
+    dismiss_toasts(page)
+    wait_for_toast_gone(page)
+    page.click('xpath=//button[@id="menu-button-my-data"]', force=True)
     page.wait_for_selector("table.Table_tableFixed__qZs5B", timeout=15000)
 
 

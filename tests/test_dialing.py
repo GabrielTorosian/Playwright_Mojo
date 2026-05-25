@@ -43,6 +43,8 @@ APPROVED_CALLER_IDS = ["8705054750", "3125006944"]
 
 def select_test_list(page):
     """Выбирает autotest_suite2 в сайдбаре Data Dialer."""
+    dismiss_toasts(page)
+    wait_for_toast_gone(page)
     lists = page.locator('div.SelectFieldElement_name__RO3oK')
     for i in range(lists.count()):
         if TEST_LIST in lists.nth(i).text_content():
@@ -70,6 +72,28 @@ def dismiss_confirm_overlay(page):
         time.sleep(0.5)
 
 
+def wait_for_toast_gone(page, timeout=8000):
+    """Ждёт пока все Toastify-тосты исчезнут с экрана."""
+    try:
+        page.wait_for_selector(".Toastify__toast", state="hidden", timeout=timeout)
+    except Exception:
+        pass
+
+
+def dismiss_toasts(page):
+    """Принудительно убирает все Toastify/GlobalNotification тосты из DOM."""
+    try:
+        page.evaluate("""
+            () => document.querySelectorAll(
+                '.Toastify__toast, .GlobalNotification_customToast__Wjb1v, ' +
+                '.GlobalNotification_GlobalNotificationBtns__YtrqJ'
+            ).forEach(el => el.remove())
+        """)
+        time.sleep(0.2)
+    except Exception:
+        pass
+
+
 def open_call_wizard(page):
     """Открывает Call Wizard через кнопку Power Dialer.
 
@@ -77,9 +101,11 @@ def open_call_wizard(page):
     'Please try again in 7 minutes'. В этом случае тест пропускается.
     """
     dismiss_confirm_overlay(page)
+    dismiss_toasts(page)
+    wait_for_toast_gone(page)
 
     pd_btn = page.locator('button.MainView_powerDialerButtonWrapper__P-scU').first
-    pd_btn.click()
+    pd_btn.click(force=True)
     time.sleep(2)
 
     # Проверяем warning о незавершённой сессии
@@ -132,11 +158,13 @@ def verify_caller_id(page):
 def start_power_dialer(page):
     """Нажимает Start Power Dialer и ждёт запуска сессии."""
     verify_caller_id(page)
+    dismiss_toasts(page)
+    wait_for_toast_gone(page)
 
     start_btn = page.locator('a[class*="green"]:has-text("Power Dialer")')
     if start_btn.count() == 0:
         start_btn = page.locator('a[class*="IconButton_green"], a[class*="green"]').last
-    start_btn.first.click()
+    start_btn.first.click(force=True)
 
     page.wait_for_selector(
         "button.DialerControlButton_container__kgqQp:has-text('Stop')",
@@ -169,6 +197,7 @@ def stop_dialer(page):
 def force_cleanup_dialer(page):
     """Полная очистка после dialer session -- Stop + закрытие wizard."""
     try:
+        dismiss_toasts(page)
         dismiss_confirm_overlay(page)
         stop_dialer(page)
         close = page.locator('button.CallWizardView_close__vaptt')
@@ -207,6 +236,8 @@ def ensure_on_data_dialer(page):
     """Проверяет что мы на Data Dialer без блокирующих оверлеев."""
     dismiss_dialer_overlay(page)
     dismiss_confirm_overlay(page)
+    dismiss_toasts(page)
+    wait_for_toast_gone(page)
     table = page.locator("table.Table_tableFixed__qZs5B")
     try:
         table.wait_for(state="visible", timeout=3000)
