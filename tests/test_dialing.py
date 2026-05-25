@@ -43,12 +43,13 @@ APPROVED_CALLER_IDS = ["8705054750", "3125006944"]
 
 def select_test_list(page):
     """Выбирает autotest_suite2 в сайдбаре Data Dialer."""
+    dismiss_react_modal(page)
     dismiss_toasts(page)
     wait_for_toast_gone(page)
     lists = page.locator('div.SelectFieldElement_name__RO3oK')
     for i in range(lists.count()):
         if TEST_LIST in lists.nth(i).text_content():
-            lists.nth(i).click()
+            lists.nth(i).click(force=True)
             break
     time.sleep(0.5)
     page.wait_for_selector("table.Table_tableFixed__qZs5B tbody tr", timeout=15000)
@@ -90,6 +91,40 @@ def dismiss_toasts(page):
             ).forEach(el => el.remove())
         """)
         time.sleep(0.2)
+    except Exception:
+        pass
+
+
+def dismiss_react_modal(page):
+    """Закрывает ReactModal__Overlay если он блокирует UI.
+
+    После остановки дайлера приложение может показывать ReactModal
+    (подтверждение, итог сессии и т.п.). Если его не убрать — следующий
+    тест не сможет кликнуть по элементам под оверлеем.
+    """
+    try:
+        overlay = page.locator("div.ReactModal__Overlay--after-open")
+        if overlay.count() == 0 or not overlay.first.is_visible():
+            return
+        # Пробуем закрыть через кнопки внутри модала (Cancel / Close / No / OK)
+        for label in ('Cancel', 'Close', 'No', 'OK', 'Done'):
+            btn = overlay.locator(f'button:has-text("{label}")')
+            if btn.count() > 0:
+                btn.first.click(force=True)
+                time.sleep(0.5)
+                return
+        # Нет подходящей кнопки — давим Escape
+        page.keyboard.press("Escape")
+        time.sleep(0.5)
+        # Если всё ещё висит — убираем из DOM
+        if overlay.count() > 0:
+            page.evaluate("""
+                () => {
+                    document.querySelectorAll('.ReactModal__Overlay').forEach(el => el.remove());
+                    document.body.classList.remove('ReactModal__Body--open');
+                }
+            """)
+            time.sleep(0.2)
     except Exception:
         pass
 
@@ -200,12 +235,17 @@ def force_cleanup_dialer(page):
         dismiss_toasts(page)
         dismiss_confirm_overlay(page)
         stop_dialer(page)
+        time.sleep(1)
+        # После Stop приложение может показать ReactModal (итог сессии)
+        dismiss_react_modal(page)
+        dismiss_toasts(page)
         close = page.locator('button.CallWizardView_close__vaptt')
         if close.count() > 0:
             close.first.click(force=True)
             time.sleep(1)
         page.keyboard.press("Escape")
         time.sleep(0.5)
+        dismiss_react_modal(page)
     except Exception:
         pass
 
@@ -234,6 +274,7 @@ def dismiss_dialer_overlay(page):
 
 def ensure_on_data_dialer(page):
     """Проверяет что мы на Data Dialer без блокирующих оверлеев."""
+    dismiss_react_modal(page)
     dismiss_dialer_overlay(page)
     dismiss_confirm_overlay(page)
     dismiss_toasts(page)
