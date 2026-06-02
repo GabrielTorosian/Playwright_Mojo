@@ -72,5 +72,38 @@ class TestDataDialerPage:
         with allure.step("проверка наличия кнопки Manage columns"):
             expect(page.locator('//a[@data-tip="Manage columns"]')).to_be_visible(timeout=15000)
 
+        with allure.step("проверка наличия кнопки Move To"):
+            expect(page.locator('//span[text()="Move To"]')).to_be_visible(timeout=15000)
+
+        # проверка меню Move To
+
+        with allure.step("клик по кнопке Move To открывает подменю"):
+            page.locator('//span[text()="Move To"]').click()
+
+        with allure.step("проверка заголовка Actions в подменю"):
+            expect(page.get_by_text("Actions", exact=True)).to_be_visible(timeout=5000)
+
+        with allure.step("проверка кнопки Move To Group"):
+            expect(page.get_by_text("Move To Group", exact=True)).to_be_visible(timeout=5000)
+
+        with allure.step("проверка кнопки Move To List"):
+            expect(page.get_by_text("Move To List", exact=True)).to_be_visible(timeout=5000)
+
+        with allure.step("проверка кнопки Move To DNC"):
+            expect(page.get_by_text("Move To DNC", exact=True)).to_be_visible(timeout=5000)
+
+        # проверка меню Assign To
+        with allure.step("клик по кнопке Assign To открывает подменю"):
+            page.locator('//span[text()="Assign To"]').click()
+
+        with allure.step("проверка заголовка Actions в подменю"):
+            expect(page.get_by_text("Actions", exact=True)).to_be_visible(timeout=5000)
+
+        with allure.step("проверка кнопки Assign Manager"):
+            expect(page.get_by_text("Assign Manager", exact=True)).to_be_visible(timeout=5000)
+
+        
+
+
 
         logout(page)
