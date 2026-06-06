@@ -170,7 +170,7 @@ class TestNavigation:
         # AI Tools
         page.click('xpath=//img[@alt="AI Tools"]')
         page.wait_for_selector('div.AIToolsView_AIBlocksGrid__MkOB8')
-        ai_header = page.locator('div.div.AIToolsView_AIToolsHeadline__tYtWS')
+        ai_header = page.locator('div.AIToolsView_AIToolsHeadline__tYtWS')
         assert "ai tools" in ai_header.text_content().lower()
 
         # ══════════════════════════════════════════════════════════════════
