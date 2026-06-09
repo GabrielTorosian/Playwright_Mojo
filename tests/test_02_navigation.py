@@ -182,7 +182,7 @@ class TestNavigation:
             page,
             'xpath=//img[@alt="Settings"]',
             'div.CallerIDMojoVoiceViewV2_page__1Iizh',
-            "Manage Your Caller ID's"
+            "Manage Your Caller IDs"
         )
 
         # Пройти по всем страницам настроек
