@@ -181,7 +181,7 @@ class TestNavigation:
         navigate_and_check(
             page,
             'xpath=//img[@alt="Settings"]',
-            'div.CallerIDMojoVoiceView_whitelistingLegendContainer__CbfXq',
+            'div.CallerIDMojoVoiceViewV2_page__1Iizh',
             "Manage Your Caller ID's"
         )
 
