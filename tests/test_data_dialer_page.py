@@ -5,6 +5,7 @@
 #
 # Один логин → все проверки → один логаут.
 
+import re
 import pytest
 import allure
 from playwright.sync_api import expect
@@ -60,8 +61,19 @@ class TestDataDialerPage:
         with allure.step("проверка наличия кнопки Skip Tracer"):
             expect(page.locator('//button[text()="Skip Tracer"]')).to_be_visible(timeout=15000)
 
-        #with allure.step("проверка наличия кнопки Map View"):
-        #    expect(page.locator('//button//*[text()="Map View"]')).to_be_visible(timeout=15000)
+        # проверка наличия таблицы на странице
+        with allure.step("проверка что таблица контактов загрузилась"):
+            expect(page.locator('//th[contains(.,"Full Name")]')).to_be_visible(timeout=15000)
+        with allure.step("проверка что таблица контактов содержит строки"):
+            expect(page.locator('//table//tbody//tr').first).to_be_visible(timeout=15000)
+
+        # проверка отображения кнопки Map View
+        with allure.step("выбрать лист Property List"):
+            page.locator('//div[@class="SelectFieldElement_name__RO3oK" and contains(.,"Property List")]').click()
+            page.wait_for_load_state("networkidle", timeout=15000)
+
+        with allure.step("проверка что кнопка Map View отображается"):
+            expect(page.locator('//button[contains(.,"Map View")]')).to_be_visible(timeout=15000)
 
         with allure.step("проверка наличия кнопки Create Contact"):
             expect(page.locator('//a[@data-tip="Create Contact"]')).to_be_visible(timeout=15000)
@@ -102,8 +114,58 @@ class TestDataDialerPage:
         with allure.step("проверка кнопки Assign Manager"):
             expect(page.get_by_text("Assign Manager", exact=True)).to_be_visible(timeout=5000)
 
-        
+        with allure.step("проверка кнопки Assign Action Plan"):
+            expect(page.get_by_text("Assign Action Plan", exact=True)).to_be_visible(timeout=5000)
 
+        # проверка наличия кнопки Export
+        with allure.step("проверка кнопки Export"):
+            expect(page.get_by_text("Export", exact=True)).to_be_visible(timeout=5000)
+
+        # проверка наличия кнопки Find Duplicates
+        with allure.step("проверка кнопки Find Duplicates"):
+            expect(page.get_by_text("Find Duplicates", exact=True)).to_be_visible(timeout=5000)
+
+        # проверка наличия кнопки массового Delete
+        with allure.step("проверка кнопки Delete"):
+            expect(page.get_by_text("Delete", exact=True)).to_be_visible(timeout=5000)
+
+        # проверка пагинации таблицы
+        with allure.step("проверка наличия блока пагинации"):
+            pagination = page.locator("div.Table_paginationControlsSection__\\+rubG").first
+            expect(pagination).to_be_visible(timeout=15000)
+
+        with allure.step("проверка формата '* - * of *' в блоке пагинации"):
+            pagination_text = pagination.inner_text()
+            assert re.search(r'\d+ - \d+\s*of\s*\d+', pagination_text), \
+                f"Ожидался формат '* - * of *' в пагинации, получено: '{pagination_text}'"
+
+        with allure.step("проверка наличия дропдауна количества строк на странице"):
+            rows_dropdown = page.locator("button.Dropdown_mainContainer__GBGSE")
+            expect(rows_dropdown).to_be_visible(timeout=15000)
+
+        with allure.step("проверка что в дропдауне отображается integer значение"):
+            dropdown_text = rows_dropdown.locator("div").first.inner_text().strip()
+            assert re.fullmatch(r'\d+', dropdown_text), \
+                f"Ожидалось целое число в дропдауне, получено: '{dropdown_text}'"
+
+        # проверка навигации по страницам
+        page_nav = page.locator("div.Table_paginationControlsSection__\\+rubG ")
+
+        with allure.step("проверка наличия надписи 'Page'"):
+            expect(page_nav.get_by_text("Page", exact=False)).to_be_visible(timeout=15000)
+
+        with allure.step("проверка наличия кнопок страниц 1, 2, 3, 4, 5"):
+            for num in ["1", "2", "3", "4", "5"]:
+                expect(page_nav.get_by_role("button", name=num, exact=True)).to_be_visible(timeout=15000)
+
+        with allure.step("проверка наличия стрелок навигации"):
+            expect(page_nav.locator("button.Table_pageArrowButtonDark__eVBuz img[alt='back']")).to_be_visible(timeout=15000)
+            expect(page_nav.locator("button.Table_pageArrowButtonDark__eVBuz img[alt='forward']")).to_be_visible(timeout=15000)
+
+        with allure.step("проверка наличия поля ввода номера страницы"):
+            expect(page_nav.locator("input[type='number']")).to_be_visible(timeout=15000)
+
+        # проверка отображения кнопки Map View
 
 
         logout(page)
