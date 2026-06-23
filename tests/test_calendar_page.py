@@ -28,6 +28,25 @@ CALENDAR_TABLE_BODY = "tbody.Table_tbody__WYAlK"
 # Фильтр "All" (чекбокс)
 ALL_FILTER_CHECKBOX = 'xpath=//button[contains(@class, "Checkbox_Checkbox__FWKJN")][.//div[text()="All"]]'
 
+# Сайдбар — фильтры-чекбоксы
+SIDEBAR_FILTER_LABELS = [
+    "All",
+    "Appointments",
+    "Tasks",
+    "Follow-Up Calls",
+    "Letters & Labels",
+    "Birthdays",
+    "Home Close Date",
+    "Completed Activities",
+]
+SIDEBAR_FILTER_CHECKBOX = 'xpath=//button[contains(@class, "Checkbox_Checkbox__FWKJN")][.//div[text()="{label}"]]'
+
+# Мини-календарь в сайдбаре (role=application, aria-label="Calendar")
+MINI_CALENDAR = '[role="application"][aria-label="Calendar"]'
+
+# Кнопка Add Holidays
+ADD_HOLIDAYS_BTN = 'xpath=//button[.//text()[contains(., "Add Holidays")]]'
+
 
 def go_to_calendar(page):
     """Навигация в Calendar из любой страницы."""
@@ -126,3 +145,107 @@ class TestCalendarPage:
         else:
             print("ℹ Follow-Up Call ивентов в текущем периоде нет — skip")
             pytest.skip("No Follow-Up Call events in current period")
+
+    def test_sidebar_elements(self, shared_page):
+        """
+        Проверяем наличие всех элементов в левом сайдбаре Calendar:
+        - чекбоксы фильтров (All, Appointments, Tasks, ...)
+        - мини-календарь
+        - кнопка Add Holidays
+        """
+        page = shared_page
+        go_to_calendar(page)
+
+        # ── Фильтры-чекбоксы ─────────────────────────────────────────────────
+        for label in SIDEBAR_FILTER_LABELS:
+            locator = page.locator(SIDEBAR_FILTER_CHECKBOX.format(label=label))
+            expect(locator).to_be_visible(timeout=5000)
+            print(f"✓ Фильтр '{label}' присутствует в сайдбаре")
+
+        # ── Мини-календарь ────────────────────────────────────────────────────
+        mini_cal = page.locator(MINI_CALENDAR)
+        expect(mini_cal.first).to_be_visible(timeout=5000)
+        print("✓ Мини-календарь отображается")
+
+        # ── Кнопка Add Holidays ───────────────────────────────────────────────
+        add_holidays = page.get_by_role("button", name="Add Holidays")
+        expect(add_holidays.first).to_be_visible(timeout=5000)
+        print("✓ Кнопка 'Add Holidays' присутствует")
+
+    def test_toolbar_elements(self, shared_page):
+        """
+        Проверяем элементы тулбара Calendar:
+        1. Кнопка Print Letters & Labels
+        2. Попап выбора пользователя (dropdown агентов)
+        3. Попап выбора даты (All Dates) — открывается и закрывается
+        4. Кнопки Today / Past / Future
+        5. Кнопка Manage Columns
+        """
+        page = shared_page
+        go_to_calendar(page)
+        print("✓ Calendar открыт")
+
+        # 1. Кнопка Print Letters & Labels
+        print_btn = page.get_by_role("button", name="Print Letters & Labels")
+        expect(print_btn).to_be_visible(timeout=5000)
+        print("✓ Кнопка 'Print Letters & Labels' присутствует")
+
+        # 2. Попап выбора пользователя (dropdown агентов)
+        agent_dropdown = page.get_by_role("button", name="NOT USE", exact=False).first
+        agent_dropdown.click()
+        all_agents_option = page.get_by_text("All Agents")
+        expect(all_agents_option).to_be_visible(timeout=5000)
+        print("✓ Попап выбора агента открылся, 'All Agents' виден")
+        page.keyboard.press("Escape")
+
+        # 3. All Dates — открываем попап выбора даты
+        all_dates_btn = page.get_by_role("button", name="All Dates")
+        expect(all_dates_btn).to_be_visible(timeout=5000)
+        all_dates_btn.click()
+        date_popup = page.locator("text=All Dates").first
+        expect(date_popup).to_be_visible(timeout=5000)
+        print("✓ Попап выбора даты 'All Dates' открылся")
+        cancel_btn = page.get_by_role("button", name="Cancel")
+        cancel_btn.click()
+        expect(all_dates_btn).to_be_visible(timeout=5000)
+        print("✓ Попап закрыт")
+
+        # 4. Кнопки Today / Past / Future
+        for name in ("Today", "Past", "Future"):
+            btn = page.get_by_role("button", name=name, exact=True)
+            expect(btn.first).to_be_visible(timeout=5000)
+            print(f"✓ Кнопка '{name}' присутствует")
+
+        # 5. Кнопка Manage Columns (по src иконки)
+        manage_col_btn = page.locator('a[role="button"][data-tip="Manage columns"]')
+        expect(manage_col_btn).to_be_visible(timeout=5000)
+        print("✓ Кнопка 'Manage Columns' присутствует")
+
+        # 6. Кнопки нижнего бара
+        for name in ("Print", "Assign", "Complete", "Reschedule", "Export"):
+            btn = page.get_by_role("button", name=name, exact=False)
+            expect(btn.first).to_be_visible(timeout=5000)
+            print(f"✓ Кнопка '{name}' присутствует")
+
+    def test_pagination(self, shared_page):
+        """
+        Проверяем элементы пагинации в нижней части таблицы Calendar.
+        """
+        page = shared_page
+        go_to_calendar(page)
+
+        expect(page.get_by_text("Page", exact=True)).to_be_visible(timeout=5000)
+        print("✓ Надпись 'Page' присутствует")
+
+        for num in ["1", "2", "3", "4", "5"]:
+            expect(page.get_by_role("button", name=num, exact=True).first).to_be_visible(timeout=5000)
+            print(f"✓ Кнопка страницы '{num}' присутствует")
+
+        expect(page.locator("img[alt='back']")).to_be_visible(timeout=5000)
+        print("✓ Стрелка 'back' присутствует")
+
+        expect(page.locator("img[alt='forward']")).to_be_visible(timeout=5000)
+        print("✓ Стрелка 'forward' присутствует")
+
+        expect(page.locator("input[type='number']")).to_be_visible(timeout=5000)
+        print("✓ Поле ввода номера страницы присутствует")

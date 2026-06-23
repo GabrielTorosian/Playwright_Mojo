@@ -165,7 +165,4 @@ class TestDataDialerPage:
         with allure.step("проверка наличия поля ввода номера страницы"):
             expect(page_nav.locator("input[type='number']")).to_be_visible(timeout=15000)
 
-        # проверка отображения кнопки Map View
-
-
         logout(page)
