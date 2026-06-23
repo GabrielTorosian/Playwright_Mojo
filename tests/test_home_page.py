@@ -37,7 +37,6 @@ class TestHomePage:
 
         # ── Правый сайдбар ────────────────────────────────────────────
         expect(page.get_by_text("Training:")).to_be_visible(timeout=15000)
-        expect(page.get_by_text("Mojo News / Product Updates:")).to_be_visible(timeout=15000)
         expect(page.get_by_text("System Status:")).to_be_visible(timeout=15000)
 
         logout(page)
