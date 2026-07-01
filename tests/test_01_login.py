@@ -47,6 +47,7 @@ class TestLogin:
         4. Проверяем что URL не изменился на /home/ (редиректа нет)
         """
         page.goto(f"{BASE_URL}/login/")
+        page.wait_for_selector('input[name="email"]', state="visible", timeout=30000)
         page.fill('input[name="email"]', EMAIL)
         page.fill('input[name="password"]', "wrong_password")
         page.click('button[type="submit"]')

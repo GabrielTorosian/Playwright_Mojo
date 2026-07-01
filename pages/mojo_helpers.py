@@ -25,6 +25,10 @@ def login(page: Page, base_url: str, email: str, password: str):
     """
     page.goto(f"{base_url}/login/")
 
+    # Явно ждём отрисовки формы логина (React) — не полагаемся на дефолтный
+    # таймаут страницы, который вызывающий код может выставить ниже (см. shared_page).
+    page.wait_for_selector('input[name="email"]', state="visible", timeout=30000)
+
     # fill() автоматически очищает поле перед вводом
     page.fill('input[name="email"]', email)
     page.fill('input[name="password"]', password)
