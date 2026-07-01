@@ -23,11 +23,21 @@ def login(page: Page, base_url: str, email: str, password: str):
     4. Закрываем popup "Expired Data" если появился
     5. Ждём загрузки домашней страницы
     """
-    page.goto(f"{base_url}/login/")
-
-    # Явно ждём отрисовки формы логина (React) — не полагаемся на дефолтный
-    # таймаут страницы, который вызывающий код может выставить ниже (см. shared_page).
-    page.wait_for_selector('input[name="email"]', state="visible", timeout=30000)
+    # lb11 /login/ кратковременно отдаёт 503 при быстром релогине (login→logout→
+    # login в упор, как в переходе test_02 → test_03). Тогда страница статична и
+    # формы на ней нет — ждать бесполезно. Поэтому перезагружаем с ретраем, пока
+    # форма не появится, вместо ожидания на мёртвой 503-странице.
+    last_err = None
+    for attempt in range(5):
+        page.goto(f"{base_url}/login/", wait_until="domcontentloaded")
+        try:
+            page.wait_for_selector('input[name="email"]', state="visible", timeout=8000)
+            break
+        except Exception as e:  # 503 / форма не отрисовалась — бэк-офф и reload
+            last_err = e
+            page.wait_for_timeout(3000)
+    else:
+        raise last_err  # исчерпали ретраи — это уже настоящая проблема
 
     # fill() автоматически очищает поле перед вводом
     page.fill('input[name="email"]', email)
