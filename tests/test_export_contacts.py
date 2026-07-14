@@ -6,6 +6,8 @@
 # Запуск:
 #   pytest tests/test_export_contacts.py --headed
 
+import re
+
 import pytest
 from playwright.sync_api import expect
 from pages.mojo_helpers import go_to_data_dialer, logout
@@ -32,7 +34,7 @@ class TestExportContacts:
         Сценарий: экспорт всех контактов из группы.
         1. Data Dialer → открыть группу
         2. Select All → Export
-        3. Ждём toast "File Successfully Generated"
+        3. Ждём toast "File successfully generated"
         """
         page = logged_in_page
 
@@ -53,8 +55,10 @@ class TestExportContacts:
         page.click('xpath=//button[text()="Export"]')
 
         # Ждём toast об успешной генерации файла (до 60 сек — экспорт может быть долгим)
-        success_toast = page.locator(
-            'xpath=//div[@id="heavyTaskToastId"]//div[text()="File Successfully Generated"]'
+        # Текст тоста менялся (регистр + добавлен хвост про Downloads folder),
+        # поэтому матчим по подстроке без учёта регистра.
+        success_toast = page.locator('div#heavyTaskToastId').get_by_text(
+            re.compile(r"file successfully generated", re.IGNORECASE)
         )
         expect(success_toast).to_be_visible(timeout=60000)
 
