@@ -50,6 +50,9 @@ def login(page: Page, base_url: str, email: str, password: str):
     # Закрыть popup "Expired Data" если появился (ждём 3 сек)
     close_expired_data_popup(page)
 
+    # Закрыть popup с анонсом новых фич если появился (показывается ~раз в день)
+    close_announcement_popup(page)
+
     # Ждём пока навигационное меню отрисуется (React app инициализировался)
     page.wait_for_selector('xpath=//button[@id="menu-button-my-data"]', timeout=15000)
 
@@ -76,6 +79,20 @@ def close_expired_data_popup(page: Page):
     """Закрывает popup 'Expired Data' если он появился после логина."""
     try:
         popup = page.locator("button.GenericModal_button__1wlPS.GenericModal_cancelButton__3Scfe")
+        popup.click(timeout=3000)
+    except Exception:
+        pass  # Попап не появился — ничего не делаем
+
+
+def close_announcement_popup(page: Page):
+    """Закрывает popup с анонсом новых фич (newsfeed), если он появился.
+
+    Показывается примерно раз в день на первом логине. Кликаем крестик
+    close-all, закрывающий весь стек анонсов (а не close-btn-wrapper,
+    который закрывает только текущий слайд из нескольких).
+    """
+    try:
+        popup = page.locator("div.pfruits-announcement-popups-stacker .close-all")
         popup.click(timeout=3000)
     except Exception:
         pass  # Попап не появился — ничего не делаем
