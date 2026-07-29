@@ -12,7 +12,7 @@ from playwright.sync_api import expect
 from pages.mojo_helpers import go_to_data_dialer, logout, delete_list, close_skip_tracer_popup
 
 ST_ADDRESS = "18891 Shoshonee Rd Apple Valley, CA 92307"
-LIST_NAME = "01 ST onetime lookup autotest"
+LIST_NAME = "01 ST onetime lookup autotest DEL"
 
 
 def create_list(page, list_name: str):
