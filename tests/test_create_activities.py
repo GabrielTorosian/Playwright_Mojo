@@ -27,18 +27,18 @@ def dismiss_appointment_reminder(page):
 ACTIVITY_BUTTONS = {
     "appointment": {
         "create_btn": 'xpath=//img[contains(@src, "add-appt-icon")]',
-        "title_field": "input.AppointmentPopup_textInput__5xi4k",
-        "desc_field": "textarea.AppointmentPopup_descriptionTextarea__dNpWU",
+        "title_field": "input.AppointmentPopup_textInput__PHrDH",
+        "desc_field": "textarea.AppointmentPopup_descriptionTextarea__dwYi1",
     },
     "task": {
         "create_btn": 'xpath=//img[contains(@src, "add-task-icon")]',
-        "title_field": "input.TaskPopup_textInput__6lWYN",
-        "desc_field": "textarea.TaskPopup_descriptionTextarea__gvOes",
+        "title_field": "input.TaskPopup_textInput__OMQqQ",
+        "desc_field": "textarea.TaskPopup_descriptionTextarea__HPQAR",
     },
     "fu_call": {
         "create_btn": 'xpath=//img[contains(@src, "add-f_call-icon")]',
-        "title_field": "input.FollowUpCallPopup_textInput__AMlxe",
-        "desc_field": "textarea.FollowUpCallPopup_descriptionTextarea__f3aPG",
+        "title_field": "input.FollowUpCallPopup_textInput__uDdW8",
+        "desc_field": "textarea.FollowUpCallPopup_descriptionTextarea__xMBAV",
     },
 }
 
@@ -63,7 +63,7 @@ def create_activity_from_cs(page, activity_type: str):
 
     # Нажать кнопку создания активности
     page.click(config["create_btn"])
-    page.wait_for_selector("div.GenericModal_mainContainer__Wy5u3")
+    page.wait_for_selector("div.GenericModal_mainContainer__9inrP")
 
     # Заполнить title и description
     title = f"{activity_type} title autotest"
@@ -77,14 +77,14 @@ def create_activity_from_cs(page, activity_type: str):
     dismiss_appointment_reminder(page)
 
     # Нажать Confirm
-    page.click("button.GenericModal_button__lmCtH.GenericModal_confirmButton__BAaWj")
-    page.wait_for_selector("div.GenericModal_mainContainer__Wy5u3", state="hidden")
+    page.click("button.GenericModal_button__I7HfS.GenericModal_confirmButton__GH847")
+    page.wait_for_selector("div.GenericModal_mainContainer__9inrP", state="hidden")
 
     # Переключиться на вкладку Activities
     page.click('xpath=//button[@id="activities" and text()="Activities"]')
 
     # Проверить что title активности появился
-    activity_title = page.locator("span.ContactActivity_title__vMR3N")
+    activity_title = page.locator("span.ContactActivity_title__seIMH")
     assert title in activity_title.text_content(timeout=15000), \
         f"Активность '{activity_type}' не была создана"
 
@@ -97,14 +97,14 @@ def go_to_calendar(page):
     dismiss_appointment_reminder(page)
     page.click('xpath=//div[text()="Calendar"]')
     # Подтвердить "unsaved changes" если появился
-    page.click("button.confirmAlert_actionButton__gdvBM.confirmAlert_actionButtonConfirm__ARIc7")
-    page.wait_for_selector("table.Table_tableFixed__qZs5B")
+    page.click("button.confirmAlert_actionButton__91Ic3.confirmAlert_actionButtonConfirm__BkRM9")
+    page.wait_for_selector("table.Table_tableFixed__zOYTo")
 
 
 def ensure_all_activities_checked(page):
     """Убедиться что фильтр 'All' в Calendar включён."""
     all_checkbox = page.locator(
-        'xpath=//button[contains(@class, "Checkbox_Checkbox__FWKJN")][.//div[text()="All"]]'
+        'xpath=//button[contains(@class, "Checkbox_Checkbox__hoZ3r")][.//div[text()="All"]]'
     )
     parent = all_checkbox.locator('..')
     if "filterSelected" not in (parent.get_attribute("class") or ""):
@@ -116,17 +116,17 @@ def search_and_delete_activity_in_calendar(page):
     """
     Ищет активность в Calendar по имени контакта и удаляет.
     """
-    calendar_search = page.locator("input.CalendarTableView_searchInput__LKjjP")
+    calendar_search = page.locator("input.CalendarTableView_searchInput__2ZwDd")
     calendar_search.fill(CONTACT_NAME)
-    page.wait_for_selector("tbody.Table_tbody__WYAlK")
+    page.wait_for_selector("tbody.Table_tbody__76ESO")
 
     # Нажать "..." (контекстное меню) — может потребоваться повтор из-за ре-рендера таблицы
-    page.click("button.ContextMenu_contextButton__hZpmC")
-    page.click('xpath=//button[@class="PopoverMenu_menuButton__Vmhae"][div[text()="Delete"]]')
+    page.click("button.ContextMenu_contextButton__sVm9r")
+    page.click('xpath=//button[@class="PopoverMenu_menuButton__3Denz"][div[text()="Delete"]]')
 
     # Подтвердить удаление
-    page.click("button.confirmAlert_actionButton__gdvBM.confirmAlert_actionButtonConfirm__ARIc7")
-    page.wait_for_selector("div.confirmAlert_confirmAlert__Dg54z", state="hidden")
+    page.click("button.confirmAlert_actionButton__91Ic3.confirmAlert_actionButtonConfirm__BkRM9")
+    page.wait_for_selector("div.confirmAlert_confirmAlert__QOGEp", state="hidden")
 
 
 @pytest.mark.activities

@@ -24,15 +24,15 @@ EMAIL = "gabik31+0109@ukr.net"
 PASSWORD = "123456"
 
 # ── Селекторы ────────────────────────────────────────────────────────────────
-SEARCH_OPEN = "button.DummySidebarSearch_searchInputContainer__uV8MF"
-SEARCH_INPUT = "input.SidebarSearch_searchInput__TNhew"
-SEARCH_SUBMIT = "button.SidebarSearch_searchSubmitBtn__OLnSD"
+SEARCH_OPEN = "button.DummySidebarSearch_searchInputContainer__CGscV"
+SEARCH_INPUT = "input.SidebarSearch_searchInput__W7g8J"
+SEARCH_SUBMIT = "button.SidebarSearch_searchSubmitBtn__lmt8s"
 SEARCH_CLOSE = 'div[class*="SidebarSearch_closeAnchor"]'
-RESULTS_LABEL = "div.SearchResultsLabel_container__oDVO4"
-RESULTS_GROUP = "div.ContactGroup_contactGroup__v7Hqq"
+RESULTS_LABEL = "div.SearchResultsLabel_container__raGlU"
+RESULTS_GROUP = "div.ContactGroup_contactGroup__w4dyJ"
 VIEW_ALL_BTN = 'xpath=//button[text()="View all results in table"]'
-TABLE_ROWS = "table.Table_tableFixed__qZs5B tbody tr"
-CALENDAR_RESULT_ITEM = "div.SearchResults_resultItem__yCDtt"
+TABLE_ROWS = "table.Table_tableFixed__zOYTo tbody tr"
+CALENDAR_RESULT_ITEM = "div.SearchResults_resultItem__CLIlH"
 
 
 def open_search(page):

@@ -69,7 +69,7 @@ class TestDataDialerPage:
 
         # проверка отображения кнопки Map View
         with allure.step("выбрать лист Property List"):
-            page.locator('//div[@class="SelectFieldElement_name__RO3oK" and contains(.,"Property List")]').click()
+            page.locator('//div[@class="SelectFieldElement_name__G8DvC" and contains(.,"Property List")]').click()
             page.wait_for_load_state("networkidle", timeout=15000)
 
         with allure.step("проверка что кнопка Map View отображается"):
@@ -131,7 +131,7 @@ class TestDataDialerPage:
 
         # проверка пагинации таблицы
         with allure.step("проверка наличия блока пагинации"):
-            pagination = page.locator("div.Table_paginationControlsSection__\\+rubG").first
+            pagination = page.locator("div.Table_paginationControlsSection__iwjtM").first
             expect(pagination).to_be_visible(timeout=15000)
 
         with allure.step("проверка формата '* - * of *' в блоке пагинации"):
@@ -140,7 +140,7 @@ class TestDataDialerPage:
                 f"Ожидался формат '* - * of *' в пагинации, получено: '{pagination_text}'"
 
         with allure.step("проверка наличия дропдауна количества строк на странице"):
-            rows_dropdown = page.locator("button.Dropdown_mainContainer__GBGSE")
+            rows_dropdown = page.locator("button.Dropdown_mainContainer__0u3LP")
             expect(rows_dropdown).to_be_visible(timeout=15000)
 
         with allure.step("проверка что в дропдауне отображается integer значение"):
@@ -149,7 +149,7 @@ class TestDataDialerPage:
                 f"Ожидалось целое число в дропдауне, получено: '{dropdown_text}'"
 
         # проверка навигации по страницам
-        page_nav = page.locator("div.Table_paginationControlsSection__\\+rubG ")
+        page_nav = page.locator("div.Table_paginationControlsSection__iwjtM ")
 
         with allure.step("проверка наличия надписи 'Page'"):
             expect(page_nav.get_by_text("Page", exact=False)).to_be_visible(timeout=15000)
@@ -159,8 +159,8 @@ class TestDataDialerPage:
                 expect(page_nav.get_by_role("button", name=num, exact=True)).to_be_visible(timeout=15000)
 
         with allure.step("проверка наличия стрелок навигации"):
-            expect(page_nav.locator("button.Table_pageArrowButtonDark__eVBuz img[alt='back']")).to_be_visible(timeout=15000)
-            expect(page_nav.locator("button.Table_pageArrowButtonDark__eVBuz img[alt='forward']")).to_be_visible(timeout=15000)
+            expect(page_nav.locator("button.Table_pageArrowButtonDark__LvVV7 img[alt='back']")).to_be_visible(timeout=15000)
+            expect(page_nav.locator("button.Table_pageArrowButtonDark__LvVV7 img[alt='forward']")).to_be_visible(timeout=15000)
 
         with allure.step("проверка наличия поля ввода номера страницы"):
             expect(page_nav.locator("input[type='number']")).to_be_visible(timeout=15000)

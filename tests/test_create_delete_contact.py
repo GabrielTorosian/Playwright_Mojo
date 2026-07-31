@@ -26,10 +26,10 @@ class TestCreateDeleteContact:
         # ── 2. Нажать "Create Contact" ───────────────────────────────────
         page.click('a[data-tip="Create Contact"]')
         # Ждём загрузки формы — появятся поля ввода
-        page.wait_for_selector('input.InputRow_inputElement__A3E9s')
+        page.wait_for_selector('input.InputRow_inputElement__JimdT')
 
         # ── 3. Заполнить поля контакта ───────────────────────────────────
-        fields = page.locator('input.InputRow_inputElement__A3E9s')
+        fields = page.locator('input.InputRow_inputElement__JimdT')
         fields.nth(0).fill('Autocreate Contact01')     # Full Name
         fields.nth(1).fill('test_email@op.net')         # Email
         fields.nth(2).fill('9991111111')                 # Phone

@@ -28,8 +28,8 @@ class TestHomePage:
 
         # ── Карточки: Neighborhood Search, Expired Leads и т.д. ───────
         expect(page.get_by_text("Neighborhood Search", exact=True)).to_be_visible(timeout=15000)
-        expect(page.locator(".ProductWidget_widgetLabel__LnBsi", has_text="Expired Leads")).to_be_visible(timeout=15000)
-        expect(page.locator(".ProductWidget_widgetLabel__LnBsi", has_text="FSBO Leads")).to_be_visible(timeout=15000)
+        expect(page.locator(".ProductWidget_widgetLabel__FUTyJ", has_text="Expired Leads")).to_be_visible(timeout=15000)
+        expect(page.locator(".ProductWidget_widgetLabel__FUTyJ", has_text="FSBO Leads")).to_be_visible(timeout=15000)
 
         # ── Заголовки таблиц ──────────────────────────────────────────
         expect(page.get_by_text("Today's Activities:")).to_be_visible(timeout=15000)

@@ -12,9 +12,9 @@ import pytest
 from pages.mojo_helpers import logout
 
 # ── Селекторы ────────────────────────────────────────────────────────────────
-PAGES_HEADER = 'xpath=//div[@class="Generic_subtitle2__FY6pW"]'
-SETTINGS_CONTAINER = 'xpath=//div[@class="SettingsView_container__+jzFZ"]'
-INTEGRATION_DESC = 'xpath=//div[@class="Generic_text1__aH3dk"]'
+PAGES_HEADER = 'xpath=//div[@class="Generic_subtitle2__D2A6X"]'
+SETTINGS_CONTAINER = 'xpath=//div[@class="SettingsView_container__qX0Vz"]'
+INTEGRATION_DESC = 'xpath=//div[@class="Generic_text1__fKmNX"]'
 
 
 def navigate_and_check(page, button_selector, wait_selector, expected_text):
@@ -83,7 +83,7 @@ class TestNavigation:
 
         # Data & Dialer
         page.click('xpath=//img[@alt="Data & Dialer"]')
-        page.wait_for_selector("table.Table_tableFixed__qZs5B")
+        page.wait_for_selector("table.Table_tableFixed__zOYTo")
         header = page.locator(PAGES_HEADER)
         assert "all contacts" in header.text_content().lower()
 
@@ -91,7 +91,7 @@ class TestNavigation:
         navigate_and_check(
             page,
             'xpath=//img[@alt="Calendar"]',
-            'div.CalendarTableView_bottomActionBar__VzqlC',
+            'div.CalendarTableView_bottomActionBar__EbcVQ',
             "Calendar"
         )
 
@@ -99,7 +99,7 @@ class TestNavigation:
         navigate_and_check(
             page,
             'xpath=//img[@alt="Reports"]',
-            'div.ReportFiltersView_filtersContainer__hynQm ',
+            'div.ReportFiltersView_filtersContainer__g7Xhv ',
             "Call Detail Report"
         )
 
@@ -107,7 +107,7 @@ class TestNavigation:
         navigate_and_check(
             page,
             'xpath=//a[@href="/reports/session-report/"]',
-            'div.ReportFiltersView_filtersContainer__hynQm ',
+            'div.ReportFiltersView_filtersContainer__g7Xhv ',
             "Session Report"
         )
 
@@ -115,7 +115,7 @@ class TestNavigation:
         navigate_and_check(
             page,
             'xpath=//a[@href="/reports/call-recordings-report/"]',
-            'div.ReportFiltersView_filtersContainer__hynQm ',
+            'div.ReportFiltersView_filtersContainer__g7Xhv ',
             "Call Recording Report"
         )
 
@@ -123,7 +123,7 @@ class TestNavigation:
         navigate_and_check(
             page,
             'xpath=//a[@href="/reports/recurring-events-report/"]',
-            'div.RecurringEventsReportView_tableContainer__KhdOb',
+            'div.RecurringEventsReportView_tableContainer__zjrg6',
             "Recurring Events Report"
         )
 
@@ -131,7 +131,7 @@ class TestNavigation:
         navigate_and_check(
             page,
             'xpath=//a[@href="/reports/posting-report/"]',
-            'table.Table_table__YUzYe',
+            'table.Table_table__hVNPG',
             "Posting Report"
         )
 
@@ -139,7 +139,7 @@ class TestNavigation:
         navigate_and_check(
             page,
             'xpath=//a[@href="/reports/agent-time-sheet-report/"]',
-            'div.ReportFiltersView_filtersContainer__hynQm ',
+            'div.ReportFiltersView_filtersContainer__g7Xhv ',
             "Agent Timesheet"
         )
 
@@ -147,7 +147,7 @@ class TestNavigation:
         navigate_and_check(
             page,
             'xpath=//a[@href="/reports/email-status-report/"]',
-            'div.ReportFiltersView_filtersContainer__hynQm ',
+            'div.ReportFiltersView_filtersContainer__g7Xhv ',
             "Email Status Report"
         )
 
@@ -163,14 +163,14 @@ class TestNavigation:
         navigate_and_check(
             page,
             'xpath=//img[@alt="Leadstore"]',
-            'div.LeadstoreHomeMainView_servicesContainer__doCYA',
+            'div.LeadstoreHomeMainView_servicesContainer__k57iw',
             "Welcome To The Leadstore"
         )
 
         # AI Tools
         page.click('xpath=//img[@alt="AI Tools"]')
-        page.wait_for_selector('div.AIToolsView_AIBlocksGrid__MkOB8')
-        ai_header = page.locator('div.AIToolsView_AIToolsHeadline__tYtWS')
+        page.wait_for_selector('div.AIToolsView_AIBlocksGrid__UhgLe')
+        ai_header = page.locator('div.AIToolsView_AIToolsHeadline__MhRnW')
         assert "ai tools" in ai_header.text_content().lower()
 
         # ══════════════════════════════════════════════════════════════════
@@ -181,7 +181,7 @@ class TestNavigation:
         navigate_and_check(
             page,
             'xpath=//img[@alt="Settings"]',
-            'div.CallerIDMojoVoiceViewV2_page__1Iizh',
+            'div.CallerIDMojoVoiceViewV2_page__5m5IR',
             "Manage Your Caller IDs"
         )
 
@@ -221,31 +221,31 @@ class TestNavigation:
 
         # Profile
         page.click('xpath=//img[@alt="Account"]')
-        header = page.locator("div.Generic_subtitle2__FY6pW")
+        header = page.locator("div.Generic_subtitle2__D2A6X")
         assert "contact information" in header.text_content(timeout=10000).lower()
 
         # Manage Payments
         page.click('xpath=//a[@href="/account/billing/"]')
-        page.wait_for_selector("div.Generic_subtitle__FGJ6f")
-        header = page.locator("div.Generic_subtitle2__FY6pW")
+        page.wait_for_selector("div.Generic_subtitle__XgaKG")
+        header = page.locator("div.Generic_subtitle2__D2A6X")
         assert "manage payments" in header.text_content().lower()
 
         # Agents
         page.click('xpath=//a[@href="/account/agents/"]')
-        page.wait_for_selector("a.AccountAgentsView_userTypesLink__XeRDe")
-        notice = page.locator("div.AccountAgentsView_notice__pzxj9")
+        page.wait_for_selector("a.AccountAgentsView_userTypesLink__9WXQx")
+        notice = page.locator("div.AccountAgentsView_notice__Sr7CW")
         assert "to delete an agent from" in notice.text_content().lower()
 
         # Subscriptions
         page.click('xpath=//a[@href="/account/subscriptions/"]')
-        page.wait_for_selector("div.SubscriptionsView_subscriptionInfo__FNYaa")
-        header = page.locator("div.Generic_subtitle2__FY6pW")
+        page.wait_for_selector("div.SubscriptionsView_subscriptionInfo__Kminj")
+        header = page.locator("div.Generic_subtitle2__D2A6X")
         assert "dialer subscriptions" in header.text_content().lower()
 
         # Refer a Friend
         page.click('xpath=//a[@href="/account/refer-friend/"]')
-        page.wait_for_selector("table.AccountReferFriendView_table__U1d-u")
-        text = page.locator("div.Generic_text1__aH3dk")
+        page.wait_for_selector("table.AccountReferFriendView_table__g1ArV")
+        text = page.locator("div.Generic_text1__fKmNX")
         assert "referral invites stay active" in text.text_content().lower()
 
         # ══════════════════════════════════════════════════════════════════

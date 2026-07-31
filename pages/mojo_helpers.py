@@ -78,7 +78,7 @@ def logout(page: Page):
 def close_expired_data_popup(page: Page):
     """Закрывает popup 'Expired Data' если он появился после логина."""
     try:
-        popup = page.locator("button.GenericModal_button__1wlPS.GenericModal_cancelButton__3Scfe")
+        popup = page.locator("button.GenericModal_button__I7HfS.GenericModal_cancelButton__PJaKm")
         popup.click(timeout=3000)
     except Exception:
         pass  # Попап не появился — ничего не делаем
@@ -101,7 +101,7 @@ def close_announcement_popup(page: Page):
 def close_share_agent_popup(page: Page):
     """Закрывает popup 'Share agent' если он появился."""
     popup = page.locator(
-        'xpath=//div[@class="GenericModal_buttonsContainer__4CfS5 "]/button[text()="Cancel"]'
+        'xpath=//div[@class="GenericModal_buttonsContainer__4lXto "]/button[text()="Cancel"]'
     )
     if popup.count() > 0:
         popup.first.click()
@@ -125,7 +125,7 @@ def dismiss_toasts(page: Page):
         page.evaluate("""
             () => document.querySelectorAll(
                 '.Toastify__toast, .GlobalNotification_customToast__Wjb1v, ' +
-                '.GlobalNotification_GlobalNotificationBtns__YtrqJ'
+                '.GlobalNotification_GlobalNotificationBtns__AZFVR'
             ).forEach(el => el.remove())
         """)
         time.sleep(0.2)
@@ -146,7 +146,7 @@ def go_to_data_dialer(page: Page):
     dismiss_toasts(page)
     wait_for_toast_gone(page)
     page.click('xpath=//button[@id="menu-button-my-data"]', force=True)
-    page.wait_for_selector("table.Table_tableFixed__qZs5B", timeout=15000)
+    page.wait_for_selector("table.Table_tableFixed__zOYTo", timeout=15000)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -154,12 +154,12 @@ def go_to_data_dialer(page: Page):
 # ══════════════════════════════════════════════════════════════════════════════
 
 # Селекторы поиска (используются в нескольких тестах)
-SEARCH_FIELD = "button.DummySidebarSearch_searchInputContainer__uV8MF"
-SEARCH_INPUT = "input.SidebarSearch_searchInput__TNhew"
-SEARCH_SUBMIT = 'xpath=//button[@class="SidebarSearch_searchSubmitBtn__OLnSD "]'
+SEARCH_FIELD = "button.DummySidebarSearch_searchInputContainer__CGscV"
+SEARCH_INPUT = "input.SidebarSearch_searchInput__W7g8J"
+SEARCH_SUBMIT = 'xpath=//button[@class="SidebarSearch_searchSubmitBtn__lmt8s "]'
 VIEW_ALL_RESULTS = 'xpath=//button[text()="View all results in table"]'
-GROUP_ARROW = 'xpath=//div[@class="ContactGroup_arrow__Cnq6b"]'
-CONTACT_NAME_RESULT = 'xpath=//div[@class="SearchResults_resultField__EPRqp SearchResults_resultItemFullName__ZgABr"]'
+GROUP_ARROW = 'xpath=//div[@class="ContactGroup_arrow__UIRnx"]'
+CONTACT_NAME_RESULT = 'xpath=//div[@class="SearchResults_resultField__UHN8i SearchResults_resultItemFullName__Ivj5n"]'
 SEARCH_CLOSE = 'div[class*="SidebarSearch_closeAnchor"]'
 
 
@@ -199,14 +199,14 @@ def delete_list(page: Page, list_name: str):
     3. Нажимает ... (manage) → Delete → подтверждает
     """
     page.click(
-        'xpath=//button[@id="calling_list"]//div[@class="SelectField_manageWrapper__T1oJh"]'
+        'xpath=//button[@id="calling_list"]//div[@class="SelectField_manageWrapper__p18FR"]'
         '/img[@alt="search-icon"]'
     )
-    page.fill('input.SelectField_searchBarSide__lBnji', list_name)
-    page.click("div.SelectFieldElement_buttonsContainer__Mi5mD")
-    page.click('xpath=//div[@class="SelectFieldElement_menuItem__AcM75" and text()="Delete"]')
-    page.click("button.GenericModal_button__lmCtH.GenericModal_confirmButton__BAaWj")
-    page.wait_for_selector("div.GenericModal_mainContainer__Wy5u3", state="hidden", timeout=15000)
+    page.fill('input.SelectField_searchBarSide__gJckk', list_name)
+    page.click("div.SelectFieldElement_buttonsContainer__aDkuy")
+    page.click('xpath=//div[@class="SelectFieldElement_menuItem__kTdef" and text()="Delete"]')
+    page.click("button.GenericModal_button__I7HfS.GenericModal_confirmButton__GH847")
+    page.wait_for_selector("div.GenericModal_mainContainer__9inrP", state="hidden", timeout=15000)
 
 
 def delete_group(page: Page, group_name: str):
@@ -218,20 +218,20 @@ def delete_group(page: Page, group_name: str):
     """
     page.click(
         'xpath=//button[@id="groups"]//img[@src="/static/media/menu-search-icon.'
-        '8a26c4e62c8ed637da9cee5ff1be5a37.svg"]/..'
+        'e72effb2b59223e122f09.svg"]/..'
     )
-    page.fill('input.SelectField_searchBarSide__lBnji', group_name)
+    page.fill('input.SelectField_searchBarSide__gJckk', group_name)
     page.click(
-        f'xpath=//div[@class="SelectFieldElement_name__RO3oK" and text()="{group_name}"]'
-        f'/..//div[@class="SelectFieldElement_manageWrapper__eP6VG"]'
+        f'xpath=//div[@class="SelectFieldElement_name__G8DvC" and text()="{group_name}"]'
+        f'/..//div[@class="SelectFieldElement_manageWrapper__Ni3D6"]'
     )
-    page.click('xpath=//div[@class="SelectFieldElement_menuItem__AcM75" and text()="Delete"]')
+    page.click('xpath=//div[@class="SelectFieldElement_menuItem__kTdef" and text()="Delete"]')
     page.click(
-        'xpath=//button[@class="GenericModal_button__lmCtH  GenericModal_confirmButton__BAaWj"'
+        'xpath=//button[@class="GenericModal_button__I7HfS  GenericModal_confirmButton__GH847"'
         ' and text()="Delete"]'
     )
     # Ждём пока группа исчезнет из списка
     page.wait_for_selector(
-        f'xpath=//div[@class="SelectFieldElement_name__RO3oK" and text()="{group_name}"]',
+        f'xpath=//div[@class="SelectFieldElement_name__G8DvC" and text()="{group_name}"]',
         state="hidden", timeout=15000
     )

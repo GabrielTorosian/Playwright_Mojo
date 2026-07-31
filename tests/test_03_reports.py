@@ -26,7 +26,7 @@ PASSWORD = "123456"
 
 # ── Селекторы ────────────────────────────────────────────────────────────────
 REPORTS_NAV = 'xpath=//img[@alt="Reports"]'
-REPORT_LINK = "a.ReportsSidebar_link__udtI5"
+REPORT_LINK = "a.ReportsSidebar_link__dzAfu"
 # "Showing X - Y of Z Rows" — текстовый селектор
 SHOWING_ROWS = 'text=/Showing.*Rows/'
 # Таблица с данными

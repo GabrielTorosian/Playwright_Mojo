@@ -79,7 +79,7 @@ def navigate_to_data_dialer(page):
     except Exception:
         pass
 
-    page.wait_for_selector("table.Table_tableFixed__qZs5B", timeout=15000)
+    page.wait_for_selector("table.Table_tableFixed__zOYTo", timeout=15000)
 
 
 def ensure_contact_open(page, contact_name):
@@ -137,10 +137,10 @@ class TestContactSheet:
 
         # ── 2. Нажать "Create Contact" ─────────────────────────────────
         page.click('a[data-tip="Create Contact"]')
-        page.wait_for_selector('input.InputRow_inputElement__A3E9s')
+        page.wait_for_selector('input.InputRow_inputElement__JimdT')
 
         # ── 3. Заполнить поля контакта ─────────────────────────────────
-        fields = page.locator('input.InputRow_inputElement__A3E9s')
+        fields = page.locator('input.InputRow_inputElement__JimdT')
         fields.nth(0).fill(CONTACT_NAME)          # Full Name
         fields.nth(1).fill(TEST_EMAIL)             # Email
         fields.nth(2).fill('6035744044')           # Phone
@@ -155,7 +155,7 @@ class TestContactSheet:
         time.sleep(0.3)
 
         # Вводим имя листа в поле поиска
-        search_input = page.locator('input.SelectField_searchBar__XhSCM')
+        search_input = page.locator('input.SelectField_searchBar__TgnlL')
         search_input.fill('autotest_suite1')
         time.sleep(0.5)
 
@@ -167,23 +167,23 @@ class TestContactSheet:
         time.sleep(0.3)
 
         # ── 5. Нажать "Create Contact" ─────────────────────────────────
-        page.locator('button.Button_btnBlue__DoHY2', has_text='Create Contact').click()
+        page.locator('button.Button_btnBlue__ZEfxB', has_text='Create Contact').click()
 
         # ── 6. Обработка попапа Duplicate Phones ───────────────────────
         # Заголовок: div.GenericModal_title  с текстом "Duplicate phones" (lowercase p)
-        duplicate_popup = page.locator('div.GenericModal_title__E-mtp')
+        duplicate_popup = page.locator('div.GenericModal_title__S1sj9')
         try:
             duplicate_popup.wait_for(state='visible', timeout=5000)
 
             # Выбираем "Keep New and Old" — кастомный чекбокс (button.Checkbox_Checkbox)
             page.locator(
-                'button.Checkbox_Checkbox__FWKJN',
-                has=page.locator('div.Checkbox_title__JDF6b', has_text='Keep New and Old')
+                'button.Checkbox_Checkbox__hoZ3r',
+                has=page.locator('div.Checkbox_title__xAohx', has_text='Keep New and Old')
             ).click()
             time.sleep(0.3)
 
             # Нажимаем Create в попапе
-            page.locator('button.GenericModal_confirmButton__BAaWj').click()
+            page.locator('button.GenericModal_confirmButton__GH847').click()
             print("✓ Попап Duplicate Phones обработан — выбрано 'Keep New and Old'")
         except Exception:
             # Попап не появился — дубликатов нет, продолжаем

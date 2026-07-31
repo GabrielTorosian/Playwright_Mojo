@@ -14,29 +14,29 @@ CONTACT_NAME = "Knoxville2711"
 
 # ── Селекторы Activities ─────────────────────────────────────────────────────
 ACTIVITIES_TAB = 'xpath=//button[@id="activities"]'
-INFO_HEADER = 'xpath=//div[@class="style_header__wTvSF" and text()="Information:"]'
+INFO_HEADER = 'xpath=//div[@class="style_header__08M9M" and text()="Information:"]'
 
 LAST_DIAL_DATE = (
-    'xpath=//div[@class="ContactInformation_label__dY8+b" '
+    'xpath=//div[@class="ContactInformation_label__sqG3d" '
     'and text()="Last Dial Date:"]/following-sibling::div[1]'
 )
-ATTEMPTS_VALUE = 'xpath=//span[@class="ContactInformation_attempts__yHoCj"]'
+ATTEMPTS_VALUE = 'xpath=//span[@class="ContactInformation_attempts__nvJnJ"]'
 PLUS_BTN = 'xpath=//img[contains(@src,"increase-icon")]/parent::button'
 MINUS_BTN = 'xpath=//img[contains(@src,"decrease-icon")]/parent::button'
 RESET_BTN = 'xpath=//button[normalize-space(text())="Reset"]'
 MARK_AS_CONTACT_BTN = (
-    'xpath=//button[@class="Button_btn__W1TTO Button_btnLightBlue__yjtPk" '
+    'xpath=//button[@class="Button_btn__XJ1bx Button_btnLightBlue__XoTho" '
     'and text()="Mark As Contact"]'
 )
 
 # Модальное окно
-MODAL = "div.GenericModal_mainContainer__Wy5u3"
+MODAL = "div.GenericModal_mainContainer__9inrP"
 NOTE_TEXTAREA = 'textarea#note'
-MODAL_CONFIRM = "button.GenericModal_button__lmCtH.GenericModal_confirmButton__BAaWj"
+MODAL_CONFIRM = "button.GenericModal_button__I7HfS.GenericModal_confirmButton__GH847"
 
 # CS close
-CS_CLOSE = 'xpath=//button[@class="ContactHeader_close__7YIL9"]'
-CS_CONTAINER = 'xpath=//div[@class="ContactView_contactContainer__g9F8M"]'
+CS_CLOSE = 'xpath=//button[@class="ContactHeader_close__b24uA"]'
+CS_CONTAINER = 'xpath=//div[@class="ContactView_contactContainer__k6pNx"]'
 
 
 @pytest.mark.attempts
@@ -104,18 +104,18 @@ class TestCsAttempts:
         page.click(RESET_BTN)
         # Второй Reset (кнопка подтверждения — красная)
         page.click(
-            'xpath=//button[@class="Button_btn__W1TTO Button_btnSalmon__FDIZ+" '
+            'xpath=//button[@class="Button_btn__XJ1bx Button_btnSalmon__2uIcR" '
             'and text()="Reset"]'
         )
 
         # Обработать confirmation alert если появится
         try:
             page.click(
-                "button.confirmAlert_actionButton__gdvBM."
-                "confirmAlert_actionButtonConfirm__ARIc7",
+                "button.confirmAlert_actionButton__91Ic3."
+                "confirmAlert_actionButtonConfirm__BkRM9",
                 timeout=5000
             )
-            page.wait_for_selector("div.confirmAlert_confirmAlert__Dg54z", state="hidden")
+            page.wait_for_selector("div.confirmAlert_confirmAlert__QOGEp", state="hidden")
         except Exception:
             pass  # Нет confirmation — Reset применился напрямую
 

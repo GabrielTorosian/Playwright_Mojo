@@ -21,12 +21,12 @@ PASSWORD = "123456"
 
 # ── Селекторы ────────────────────────────────────────────────────────────────
 CALENDAR_NAV = 'xpath=//img[@alt="Calendar"]'
-CALENDAR_LOADED = "div.CalendarTableView_bottomActionBar__VzqlC"
-CALENDAR_SEARCH = "input.CalendarTableView_searchInput__LKjjP"
-CALENDAR_TABLE_BODY = "tbody.Table_tbody__WYAlK"
+CALENDAR_LOADED = "div.CalendarTableView_bottomActionBar__EbcVQ"
+CALENDAR_SEARCH = "input.CalendarTableView_searchInput__2ZwDd"
+CALENDAR_TABLE_BODY = "tbody.Table_tbody__76ESO"
 
 # Фильтр "All" (чекбокс)
-ALL_FILTER_CHECKBOX = 'xpath=//button[contains(@class, "Checkbox_Checkbox__FWKJN")][.//div[text()="All"]]'
+ALL_FILTER_CHECKBOX = 'xpath=//button[contains(@class, "Checkbox_Checkbox__hoZ3r")][.//div[text()="All"]]'
 
 # Сайдбар — фильтры-чекбоксы
 SIDEBAR_FILTER_LABELS = [
@@ -39,7 +39,7 @@ SIDEBAR_FILTER_LABELS = [
     "Home Close Date",
     "Completed Activities",
 ]
-SIDEBAR_FILTER_CHECKBOX = 'xpath=//button[contains(@class, "Checkbox_Checkbox__FWKJN")][.//div[text()="{label}"]]'
+SIDEBAR_FILTER_CHECKBOX = 'xpath=//button[contains(@class, "Checkbox_Checkbox__hoZ3r")][.//div[text()="{label}"]]'
 
 # Мини-календарь в сайдбаре (role=application, aria-label="Calendar")
 MINI_CALENDAR = '[role="application"][aria-label="Calendar"]'

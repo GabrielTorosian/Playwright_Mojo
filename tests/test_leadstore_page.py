@@ -17,19 +17,19 @@ from pages.mojo_helpers import login
 
 # ── Селекторы ────────────────────────────────────────────────────────────────
 LEADSTORE_NAV = 'xpath=//img[@alt="Leadstore"]'
-PAGE_HEADING = "div.Generic_subtitle2__FY6pW"
-SERVICE_CARD = "div.LeadstoreHomeMainView_service__OYCN5"
-SERVICE_TITLE = "div.LeadstoreHomeMainView_title__KTWo9"
-SERVICE_PRICE = "div.LeadstoreHomeMainView_price__oFWZx"
-SERVICE_STATUS = "div.LeadstoreHomeMainView_status__gXqvY"
-LEARN_MORE_BTN = "button.LeadstoreHomeMainView_more__iuzmJ"
-SUBSCRIBE_BTN = "button.LeadstoreHomeMainView_buyNowBtn__hQumH"
-MANAGE_SUBSCRIPTION_BTN = "button.LeadstoreHomeMainView_manageBtn__ADMXN"
-SERVICE_DESC = "div.LeadstoreHomeMainView_desc__pFmm5"
-LICENSE_TERMS_BTN = "button.LeadstoreHomeMainView_btnLicenseTerms__MDzRV"
-MODAL_TITLE = "div.GenericModal_title__E-mtp"
-MODAL_CONTENT = "div.GenericModal_contentContainer__Pkxd5"
-MODAL_CLOSE_BTN = "button.GenericModal_closeButton__VvY4v"
+PAGE_HEADING = "div.Generic_subtitle2__D2A6X"
+SERVICE_CARD = "div.LeadstoreHomeMainView_service__GrJwf"
+SERVICE_TITLE = "div.LeadstoreHomeMainView_title__gwIM2"
+SERVICE_PRICE = "div.LeadstoreHomeMainView_price__FLB6w"
+SERVICE_STATUS = "div.LeadstoreHomeMainView_status__OVEkr"
+LEARN_MORE_BTN = "button.LeadstoreHomeMainView_more__piEqA"
+SUBSCRIBE_BTN = "button.LeadstoreHomeMainView_buyNowBtn__os3KR"
+MANAGE_SUBSCRIPTION_BTN = "button.LeadstoreHomeMainView_manageBtn__5UzTm"
+SERVICE_DESC = "div.LeadstoreHomeMainView_desc__grrYh"
+LICENSE_TERMS_BTN = "button.LeadstoreHomeMainView_btnLicenseTerms__J2N5o"
+MODAL_TITLE = "div.GenericModal_title__S1sj9"
+MODAL_CONTENT = "div.GenericModal_contentContainer__XL1G3"
+MODAL_CLOSE_BTN = "button.GenericModal_closeButton__qpVzZ"
 
 LICENSE_MODAL_TITLE_TEXT = "Limited License"
 LICENSE_MODAL_CONTENT_TEXT = (
@@ -38,14 +38,14 @@ LICENSE_MODAL_CONTENT_TEXT = (
 )
 
 # Нижняя часть страницы: дисклеймер, блок "Already have a lead vendor?"
-US_DISCLAIMER = "div.LeadstoreHomeMainView_second__rfZjS"
+US_DISCLAIMER = "div.LeadstoreHomeMainView_second__CV2wT"
 US_DISCLAIMER_TEXT = (
     "*Mojo Lead Store data is only available in the United States "
     "and is scrubbed against U.S. Federal Do Not Call."
 )
-VENDOR_HEADING = "div.LeadstoreHomeMainView_third__N4IiC"
+VENDOR_HEADING = "div.LeadstoreHomeMainView_third__NRfwu"
 VENDOR_HEADING_TEXT = "Already have a lead vendor?"
-VENDOR_CLICK_HERE_LINK = 'div.LeadstoreHomeMainView_fourth__UzLWQ a:has-text("Click here")'
+VENDOR_CLICK_HERE_LINK = 'div.LeadstoreHomeMainView_fourth__A2nGk a:has-text("Click here")'
 VENDOR_CLICK_HERE_HREF = "https://mojodialersupport.mojosells.com/portal/en/kb/articles/what-data-vendors-can-auto-post-to-mojo"
 
 # Ссылка внутри попапа Limited License ("...click here.") — ведёт на Terms and Conditions.
@@ -56,10 +56,10 @@ TERMS_AND_CONDITIONS_URL = "https://www.mojosells.com/terms-and-conditions/"
 # ── Страница настройки Expired Data (после клика Subscribe) ─────────────────
 EXPIRED_DATA_URL = "https://test.mojosells.com/leadstore-home/expired-data/edit/"
 EXPIRED_DATA_HEADING_TEXT = "Step 1: Let's set up your Expired Data for your area."
-LEADSTORE_SIDEBAR_ACTIVE_LINK = "a.LeadstoreHomeSidebar_linkActive__qpCW-"
-SELECT_ROW_LABEL = "div.SelectRow_label__YG3BC"
-DNC_CHECKBOX = "button.Checkbox_Checkbox__FWKJN"
-DNC_WARNING = "div.ExpiredDataSetting_youAreAllowingDnc__3jvbb"
+LEADSTORE_SIDEBAR_ACTIVE_LINK = "a.LeadstoreHomeSidebar_linkActive__Fwow4"
+SELECT_ROW_LABEL = "div.SelectRow_label__MVbwO"
+DNC_CHECKBOX = "button.Checkbox_Checkbox__hoZ3r"
+DNC_WARNING = "div.ExpiredDataSetting_youAreAllowingDnc__5wnU3"
 BUY_NOW_BTN = 'button:has-text("Buy Now")'
 SUBMIT_TICKET_BTN = 'button:has-text("Don\'t See Your MLS?")'
 # Карта рендерится через Google Maps JS API. В обычном браузере с GPU это
@@ -73,8 +73,8 @@ MAP_STATIC_IMG = 'img[src*="maps.googleapis.com"]'
 NHS_MANAGE_URL = "https://test.mojosells.com/leadstore-home/nhs/manage/"
 NHS_HEADING_TEXT = "Neighborhood Search"
 # Таблица подписки одинакова для всех "manage"-страниц (NHS, Skip Tracer, ...)
-SUBSCRIPTION_TABLE = "table.Table_table__YUzYe"
-SUBSCRIPTION_TABLE_HEADER_CELL = "th.Table_th__XnQjq"
+SUBSCRIPTION_TABLE = "table.Table_table__hVNPG"
+SUBSCRIPTION_TABLE_HEADER_CELL = "th.Table_th__CetKc"
 SUBSCRIPTION_TABLE_HEADERS = [
     "Purchase Date",
     "Cancellation Date",
@@ -85,7 +85,7 @@ SUBSCRIPTION_TABLE_HEADERS = [
 ]
 # "Showing X - Y of Z Rows" — текстовый селектор, как в test_03_reports.py
 SHOWING_ROWS = 'text=/Showing.*Rows/'
-PAGE_NUMBER_BTN = "button.Table_pageButton__2dKro"
+PAGE_NUMBER_BTN = "button.Table_pageButton__TKhqc"
 
 # ── Страница управления Skip Tracer (после клика Manage Subscription) ───────
 SKIP_TRACER_MANAGE_URL = "https://test.mojosells.com/leadstore-home/skip-tracer/manage/"
@@ -96,9 +96,9 @@ FSBO_URL = "https://test.mojosells.com/leadstore-home/fsbo/edit/"
 FSBO_HEADING_TEXT = "Step 1: Let's set up your FSBO data for your area."
 # Общий класс предупреждения "You Are Allowing DNC Numbers To Be Imported" —
 # используется на страницах FSBO и Pre-Foreclosure (у Expired Data свой класс).
-UNIFIED_DNC_WARNING = "div.UnifiedSetting_youAreAllowingDnc__2ADza"
+UNIFIED_DNC_WARNING = "div.UnifiedSetting_youAreAllowingDnc__OHCyB"
 # DNC-чекбокс и радиокнопки цены используют один и тот же класс кнопки
-PRICE_POINT_OPTION = 'button.Checkbox_Checkbox__FWKJN'
+PRICE_POINT_OPTION = 'button.Checkbox_Checkbox__hoZ3r'
 PRICE_POINT_LABEL_TEXT = "Select your Price point:"
 FSBO_PRICE_POINTS = ["All price points", "Above 100k", "Custom price points"]
 
@@ -106,12 +106,12 @@ FSBO_PRICE_POINTS = ["All price points", "Above 100k", "Custom price points"]
 FRBO_URL = "https://test.mojosells.com/leadstore-home/frbo/edit/"
 FRBO_HEADING_TEXT = "Step 1: Let's set up your FRBO data for your area."
 # У FRBO нет радиокнопок цены — только чекбокс DNC-скраба, включённый по умолчанию
-FRBO_DNC_CHECKBOX = 'button.Checkbox_Checkbox__FWKJN:has-text("Scrub Mojo FRBO data")'
+FRBO_DNC_CHECKBOX = 'button.Checkbox_Checkbox__hoZ3r:has-text("Scrub Mojo FRBO data")'
 
 # ── Страница настройки Pre-Foreclosure (после клика Subscribe) ──────────────
 PRE_FORECLOSURE_URL = "https://test.mojosells.com/leadstore-home/pre-foreclosure/edit/"
 PRE_FORECLOSURE_HEADING_TEXT = "Step 1: Let's set up your Pre-Foreclosure data for your area."
-PRE_FORECLOSURE_DNC_CHECKBOX = 'button.Checkbox_Checkbox__FWKJN:has-text("Scrub Mojo Pre-Foreclosure data")'
+PRE_FORECLOSURE_DNC_CHECKBOX = 'button.Checkbox_Checkbox__hoZ3r:has-text("Scrub Mojo Pre-Foreclosure data")'
 
 # Название сервиса → ожидаемый статус (Active/не Active)
 SERVICES = {

@@ -46,13 +46,13 @@ def select_test_list(page):
     dismiss_react_modal(page)
     dismiss_toasts(page)
     wait_for_toast_gone(page)
-    lists = page.locator('div.SelectFieldElement_name__RO3oK')
+    lists = page.locator('div.SelectFieldElement_name__G8DvC')
     for i in range(lists.count()):
         if TEST_LIST in lists.nth(i).text_content():
             lists.nth(i).click(force=True)
             break
     time.sleep(0.5)
-    page.wait_for_selector("table.Table_tableFixed__qZs5B tbody tr", timeout=15000)
+    page.wait_for_selector("table.Table_tableFixed__zOYTo tbody tr", timeout=15000)
 
 
 def dismiss_confirm_overlay(page):
@@ -87,7 +87,7 @@ def dismiss_toasts(page):
         page.evaluate("""
             () => document.querySelectorAll(
                 '.Toastify__toast, .GlobalNotification_customToast__Wjb1v, ' +
-                '.GlobalNotification_GlobalNotificationBtns__YtrqJ'
+                '.GlobalNotification_GlobalNotificationBtns__AZFVR'
             ).forEach(el => el.remove())
         """)
         time.sleep(0.2)
@@ -139,16 +139,16 @@ def open_call_wizard(page):
     dismiss_toasts(page)
     wait_for_toast_gone(page)
 
-    pd_btn = page.locator('button.MainView_powerDialerButtonWrapper__P-scU').first
+    pd_btn = page.locator('button.MainView_powerDialerButtonWrapper__bzfkZ').first
     pd_btn.click(force=True)
     time.sleep(2)
 
     # Проверяем warning о незавершённой сессии
-    warning = page.locator('div.CallWizardView_Warning__m8ZxT')
+    warning = page.locator('div.CallWizardView_Warning__WIyQM')
     if warning.count() > 0 and warning.first.is_visible():
         warn_text = warning.first.text_content()
         print(f"[!] Warning: {warn_text!r}")
-        close_btn = page.locator('button.CallWizardView_close__vaptt')
+        close_btn = page.locator('button.CallWizardView_close__zJj9u')
         if close_btn.count() > 0:
             close_btn.first.click(force=True)
         time.sleep(1)
@@ -206,7 +206,7 @@ def start_power_dialer(page):
     start_btn.first.click(force=True)
 
     page.wait_for_selector(
-        "button.DialerControlButton_container__kgqQp:has-text('Stop')",
+        "button.DialerControlButton_container__BfIGS:has-text('Stop')",
         timeout=15000, state="attached"
     )
     time.sleep(0.5)
@@ -217,7 +217,7 @@ def stop_dialer(page):
     try:
         clicked = page.evaluate("""
             () => {
-                const btns = document.querySelectorAll('button.DialerControlButton_container__kgqQp');
+                const btns = document.querySelectorAll('button.DialerControlButton_container__BfIGS');
                 for (const b of btns) {
                     if (b.textContent.trim() === 'Stop') { b.click(); return true; }
                 }
@@ -243,7 +243,7 @@ def force_cleanup_dialer(page):
         # После Stop приложение может показать ReactModal (итог сессии)
         dismiss_react_modal(page)
         dismiss_toasts(page)
-        close = page.locator('button.CallWizardView_close__vaptt')
+        close = page.locator('button.CallWizardView_close__zJj9u')
         if close.count() > 0:
             close.first.click(force=True)
             time.sleep(1)
@@ -256,12 +256,12 @@ def force_cleanup_dialer(page):
 
 def dismiss_dialer_overlay(page):
     """Убирает DialerContainer overlay если он блокирует UI."""
-    overlay = page.locator("div.DialerContainer_opaqueSidebar__Yg8KA")
+    overlay = page.locator("div.DialerContainer_opaqueSidebar__Zli5Q")
     if overlay.count() > 0:
         # Сначала пробуем Stop
         stop_dialer(page)
         # Закрываем wizard если открыт
-        close = page.locator('button.CallWizardView_close__vaptt')
+        close = page.locator('button.CallWizardView_close__zJj9u')
         if close.count() > 0:
             close.first.click(force=True)
             time.sleep(1)
@@ -271,7 +271,7 @@ def dismiss_dialer_overlay(page):
         dismiss_confirm_overlay(page)
         # Если overlay всё ещё в DOM -- удаляем через JS
         page.evaluate("""
-            () => document.querySelectorAll('.DialerContainer_opaqueSidebar__Yg8KA')
+            () => document.querySelectorAll('.DialerContainer_opaqueSidebar__Zli5Q')
                 .forEach(el => el.remove())
         """)
 
@@ -283,7 +283,7 @@ def ensure_on_data_dialer(page):
     dismiss_confirm_overlay(page)
     dismiss_toasts(page)
     wait_for_toast_gone(page)
-    table = page.locator("table.Table_tableFixed__qZs5B")
+    table = page.locator("table.Table_tableFixed__zOYTo")
     try:
         table.wait_for(state="visible", timeout=3000)
         return
@@ -390,11 +390,11 @@ class TestDialingSessions:
         ensure_on_data_dialer(page)
         select_test_list(page)
 
-        rows = page.locator("table.Table_tableFixed__qZs5B tbody tr")
+        rows = page.locator("table.Table_tableFixed__zOYTo tbody tr")
         assert rows.count() > 0, f"Лист {TEST_LIST} пустой"
         print(f"[i] Контактов в таблице: {rows.count()}")
 
-        tel_links = page.locator('table.Table_tableFixed__qZs5B a[href^="tel:"]')
+        tel_links = page.locator('table.Table_tableFixed__zOYTo a[href^="tel:"]')
         for i in range(tel_links.count()):
             href = tel_links.nth(i).get_attribute('href') or ''
             phone = href.replace('tel:', '').replace('-', '').replace(' ', '').strip()
@@ -460,12 +460,12 @@ class TestDialingSessions:
         print("[OK] Power Dialer запущен")
 
         # DialerContainer
-        dialer = page.locator("div.DialerContainer_opaqueSidebar__Yg8KA")
+        dialer = page.locator("div.DialerContainer_opaqueSidebar__Zli5Q")
         assert dialer.count() > 0, "DialerContainer не появился"
         print("[OK] DialerContainer присутствует")
 
         # 3 линии дайлера
-        lines = page.locator("div.DialerHeader_linesContainer__g89fM div[class*='DialerLine_container']")
+        lines = page.locator("div.DialerHeader_linesContainer__ktQyv div[class*='DialerLine_container']")
         assert lines.count() >= 3, f"Ожидали 3 линии, найдено: {lines.count()}"
         for i in range(lines.count()):
             status = lines.nth(i).locator("div[class*='DialerLine_status']").text_content()
@@ -473,14 +473,14 @@ class TestDialingSessions:
         print(f"[OK] Линий дайлера: {lines.count()}")
 
         # Кнопки управления
-        stop_btn = page.locator("button.DialerControlButton_container__kgqQp:has-text('Stop')")
-        pause_btn = page.locator("button.DialerControlButton_container__kgqQp:has-text('Pause')")
+        stop_btn = page.locator("button.DialerControlButton_container__BfIGS:has-text('Stop')")
+        pause_btn = page.locator("button.DialerControlButton_container__BfIGS:has-text('Pause')")
         assert stop_btn.count() > 0, "Кнопка Stop не найдена"
         assert pause_btn.count() > 0, "Кнопка Pause не найдена"
         print("[OK] Кнопки Stop и Pause присутствуют")
 
         # Call results
-        results = page.locator("div.DialerCallResults_container__lcKPP")
+        results = page.locator("div.DialerCallResults_container__1NB0G")
         assert results.count() > 0, "DialerCallResults не найден"
         results_text = results.first.text_content()
         for name in ["Contact", "No Contact", "Voicemail", "DNC"]:
@@ -498,7 +498,7 @@ class TestDialingSessions:
         enable_mojo_voice(page)
         start_power_dialer(page)
 
-        results = page.locator("div.DialerCallResults_container__lcKPP")
+        results = page.locator("div.DialerCallResults_container__1NB0G")
         assert results.count() > 0, "DialerCallResults не найден"
         results_text = results.first.text_content()
 
@@ -522,7 +522,7 @@ class TestDialingSessions:
         # Pause через JS (sidebar может быть collapsed)
         pause_clicked = page.evaluate("""
             () => {
-                const btns = document.querySelectorAll('button.DialerControlButton_container__kgqQp');
+                const btns = document.querySelectorAll('button.DialerControlButton_container__BfIGS');
                 for (const b of btns) {
                     if (b.textContent.trim() === 'Pause') { b.click(); return true; }
                 }
@@ -533,14 +533,14 @@ class TestDialingSessions:
         time.sleep(1.5)
 
         resume_btn = page.locator(
-            "button.DialerControlButton_container__kgqQp:has-text('Resume'), "
-            "button.DialerControlButton_container__kgqQp:has-text('Unpause')"
+            "button.DialerControlButton_container__BfIGS:has-text('Resume'), "
+            "button.DialerControlButton_container__BfIGS:has-text('Unpause')"
         )
         if resume_btn.count() > 0:
             print("[OK] Дайлер на паузе -- кнопка Resume появилась")
             page.evaluate("""
                 () => {
-                    const btns = document.querySelectorAll('button.DialerControlButton_container__kgqQp');
+                    const btns = document.querySelectorAll('button.DialerControlButton_container__BfIGS');
                     for (const b of btns) {
                         if (b.textContent.trim() === 'Resume') { b.click(); return; }
                     }
@@ -549,7 +549,7 @@ class TestDialingSessions:
             time.sleep(1)
             print("[OK] Дайлер возобновлён (Resume)")
         else:
-            pause_btn = page.locator("button.DialerControlButton_container__kgqQp:has-text('Pause')")
+            pause_btn = page.locator("button.DialerControlButton_container__BfIGS:has-text('Pause')")
             assert pause_btn.count() > 0, "Кнопка Pause исчезла"
             print("[OK] Pause нажата -- состояние зафиксировано")
 
@@ -564,7 +564,7 @@ class TestDialingSessions:
         enable_mojo_voice(page)
         start_power_dialer(page)
 
-        assert page.locator("div.DialerContainer_opaqueSidebar__Yg8KA").count() > 0, \
+        assert page.locator("div.DialerContainer_opaqueSidebar__Zli5Q").count() > 0, \
             "DialerContainer не запустился"
         print("[OK] Дайлер запущен")
 
@@ -572,9 +572,9 @@ class TestDialingSessions:
         assert stopped, "Stop не сработал"
 
         # DialerView должен исчезнуть или wizard вернуться
-        dialer_gone = page.locator("div.DialerView_container__nTotp").count() == 0
-        wizard_back = page.locator("div.CallWizardView_DialerButtons__yInmc").count() > 0
-        power_btn_back = page.locator("button.MainView_powerDialerButtonWrapper__P-scU").count() > 0
+        dialer_gone = page.locator("div.DialerView_container__qZK0P").count() == 0
+        wizard_back = page.locator("div.CallWizardView_DialerButtons__8PRnZ").count() > 0
+        power_btn_back = page.locator("button.MainView_powerDialerButtonWrapper__bzfkZ").count() > 0
 
         assert dialer_gone or wizard_back or power_btn_back, \
             "После Stop -- DialerView всё ещё присутствует"
@@ -605,7 +605,7 @@ class TestDialingSessions:
         time.sleep(2)
 
         page.wait_for_selector(
-            "button.DialerControlButton_container__kgqQp:has-text('Stop')",
+            "button.DialerControlButton_container__BfIGS:has-text('Stop')",
             timeout=10000, state="attached"
         )
         print("[OK] Click-To-Call сессия запущена")

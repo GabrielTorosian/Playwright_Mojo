@@ -11,28 +11,28 @@ import pytest
 from playwright.sync_api import expect
 from pages.mojo_helpers import go_to_data_dialer, logout, delete_list, close_skip_tracer_popup
 
-ST_ADDRESS = "18891 Shoshonee Rd Apple Valley, CA 92307"
-LIST_NAME = "01 ST onetime lookup autotest DEL"
+ST_ADDRESS = "9100 Thermal St Oakland, CA 94605"
+LIST_NAME = "01STonetime lookup autotestDEL"
 
 
 def create_list(page, list_name: str):
     """Создаёт новый Calling List через кнопку manage в Data Dialer."""
     page.click(
-        'xpath=//button[@id="calling_list"]//div[@class="SelectField_manageWrapper__T1oJh" '
+        'xpath=//button[@id="calling_list"]//div[@class="SelectField_manageWrapper__p18FR" '
         'and contains(@style, "opacity")]'
     )
     page.click('xpath=//div[text()="Create List"]')
-    page.fill('input.CreateElementModal_textInput__hZ21o', list_name)
+    page.fill('input[class*="CreateElementModal_textInput"]', list_name)
     page.click(
-        'xpath=//button[@class="GenericModal_button__lmCtH  '
-        'GenericModal_confirmButton__BAaWj"]'
+        'xpath=//button[@class="GenericModal_button__I7HfS  '
+        'GenericModal_confirmButton__GH847"]'
     )
     time.sleep(3)
 
     # Закрыть popup "Share" если появился
     share_popup = page.locator(
-        'xpath=//button[@class="GenericModal_button__lmCtH  '
-        'GenericModal_cancelButton__lnpHr" and text()="Cancel"]'
+        'xpath=//button[@class="GenericModal_button__I7HfS  '
+        'GenericModal_cancelButton__PJaKm" and text()="Cancel"]'
     )
     if share_popup.is_visible(timeout=3000):
         share_popup.click()
@@ -61,10 +61,17 @@ class TestSkipTracer:
 
         # ── Skip Tracer → One Time Lookup ────────────────────────────────
         page.click(
-            'xpath=//button[@class="Button_btn__W1TTO Button_btnBlue__DoHY2 '
-            'MainView_btn__2WK2S" and text()="Skip Tracer"]'
+            'xpath=//button[@class="Button_btn__XJ1bx Button_btnBlue__ZEfxB '
+            'MainView_btn__z40x7" and text()="Skip Tracer"]'
         )
-        page.click('xpath=//button[text()="One Time Lookup"]')
+        # Если аккаунт ещё не выбирал режим ST в этой сессии — сначала открывается
+        # чузер "Start your Skip Trace" с кнопками One Time Lookup / Batch Lookup.
+        # Если режим уже запомнен — форма открывается сразу, чузера нет.
+        try:
+            page.locator('button:has-text("One Time Lookup")').click(timeout=4000)
+        except Exception:
+            pass
+        page.wait_for_selector('xpath=//div[text()="One Time Lookup"]')
 
         # Ввести адрес (type симулирует ввод по клавишам — запускает Google Places автокомплит)
         addr_input = page.locator('input[class*="SkipTracerModalStyles_addressInput"]')
@@ -75,26 +82,26 @@ class TestSkipTracer:
 
         # Ждём пока ST найдёт результаты
         page.wait_for_selector(
-            'div.SkipTracerModalStyles_resultGrid__Cxryj',
+            'div.SkipTracerModalStyles_resultGrid__otxpM',
             timeout=15000
         )
         time.sleep(1)
 
         # ── Continue → выбрать список → Save ─────────────────────────────
         page.click(
-            'xpath=//button[@class="GenericModal_button__lmCtH  '
-            'GenericModal_confirmButton__BAaWj" and text()="Continue"]'
+            'xpath=//button[@class="GenericModal_button__I7HfS  '
+            'GenericModal_confirmButton__GH847" and text()="Continue"]'
         )
 
         # Открыть поиск по спискам и выбрать наш список
         page.click(
-            'xpath=//div[@class="SelectField_headerTitle__K6ZfG" '
+            'xpath=//div[@class="SelectField_headerTitle__90PkD" '
             'and text()="Calling Lists"]/../..//'
-            'img[@src="/static/media/menu-search-icon.8a26c4e62c8ed637da9cee5ff1be5a37.svg"]'
+            'img[@src="/static/media/menu-search-icon.e72effb2b59223e122f09.svg"]'
         )
-        page.fill('input.SelectField_searchBar__XhSCM', LIST_NAME)
+        page.fill('input.SelectField_searchBar__TgnlL', LIST_NAME)
         page.click(
-            f'xpath=//div[@class="SelectField_selectFieldContentWrapperWhite__Ffxz5"]'
+            f'xpath=//div[@class="SelectField_selectFieldContentWrapperWhite__jgwoA"]'
             f'//div[ text()="{LIST_NAME}"]'
         )
 
@@ -107,12 +114,12 @@ class TestSkipTracer:
 
         # Save
         page.click(
-            'xpath=//button[@class="GenericModal_button__lmCtH  '
-            'GenericModal_confirmButton__BAaWj" and text()="Save"]'
+            'xpath=//button[@class="GenericModal_button__I7HfS  '
+            'GenericModal_confirmButton__GH847" and text()="Save"]'
         )
 
         # Ждём закрытия модального окна и загрузки Contact Sheet
-        page.wait_for_selector('div.GenericModal_mainContainer__Wy5u3', state='hidden', timeout=15000)
+        page.wait_for_selector('div.GenericModal_mainContainer__9inrP', state='hidden', timeout=15000)
         page.wait_for_selector('div[class*="ContactView_contactContainer"]', timeout=15000)
 
         # ── Проверить адрес в CS ─────────────────────────────────────────
@@ -122,21 +129,21 @@ class TestSkipTracer:
 
         # ── Удалить контакт из CS ────────────────────────────────────────
         page.click(
-            'xpath=//button[@class="Button_btn__W1TTO Button_btnBlue__DoHY2" '
+            'xpath=//button[@class="Button_btn__XJ1bx Button_btnBlue__ZEfxB" '
             'and text()="Actions"]'
         )
         page.click(
-            'xpath=//div[@class="PopoverMenu_buttonContent__2N3TD" '
+            'xpath=//div[@class="PopoverMenu_buttonContent__gbRiR" '
             'and text()="Delete Contact"]/..'
         )
         page.wait_for_selector('div.react-confirm-alert')
         page.click(
             'xpath=//div[@class="react-confirm-alert"]'
-            '//button[@class="confirmAlert_actionButton__gdvBM '
-            'confirmAlert_actionButtonConfirm__ARIc7" and text()="Delete"]'
+            '//button[contains(@class, "confirmAlert_actionButtonConfirm__BkRM9") '
+            'and text()="Delete"]'
         )
         page.wait_for_selector(
-            'xpath=//div[@class="ContactView_contactContainer__g9F8M"]',
+            'xpath=//div[@class="ContactView_contactContainer__k6pNx"]',
             state="hidden"
         )
 

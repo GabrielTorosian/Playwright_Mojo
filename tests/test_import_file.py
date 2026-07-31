@@ -22,7 +22,7 @@ CSV_PATH = os.path.join(
     "test_data", "scoreboard_good_excel_edited.csv"
 )
 
-NEXT_BTN = 'xpath=//button[@class="Button_btn__W1TTO Button_btnBlue__DoHY2" and text()="Next"]'
+NEXT_BTN = 'xpath=//button[@class="Button_btn__XJ1bx Button_btnBlue__ZEfxB" and text()="Next"]'
 LIST_NAME = "0101 auto new1 DEL"
 
 
@@ -55,11 +55,11 @@ class TestImportFile:
         # ── Step 2: Создать новый список ─────────────────────────────────
         page.wait_for_selector("div#select_list_or_group_container")
         page.click("button#select_field_1_add_btn")
-        page.wait_for_selector("div.GenericModal_mainContainer__Wy5u3")
-        page.fill("input.CreateElementModal_textInput__apHfP", LIST_NAME)
+        page.wait_for_selector("div.GenericModal_mainContainer__9inrP")
+        page.fill('input[class*="CreateElementModal_textInput"]', LIST_NAME)
         time.sleep(1)
-        page.click("button.GenericModal_button__lmCtH.GenericModal_confirmButton__BAaWj")
-        page.wait_for_selector("div.GenericModal_mainContainer__Wy5u3", state="hidden")
+        page.click("button.GenericModal_button__I7HfS.GenericModal_confirmButton__GH847")
+        page.wait_for_selector("div.GenericModal_mainContainer__9inrP", state="hidden")
         # Ждём пока новый список появится в списке и выберется
         page.wait_for_selector(f'xpath=//div[text()="{LIST_NAME}"]', timeout=15000)
         page.click(NEXT_BTN)
@@ -97,12 +97,12 @@ class TestImportFile:
         # ── Поиск импортированных контактов ──────────────────────────────
         # Ждём пока оверлей импорта исчезнет
         page.wait_for_selector(
-            'xpath=//div[@class="HeavyTaskContainer_heavyTaskOverlay__3oPeK"]',
+            'xpath=//div[@class="HeavyTaskContainer_heavyTaskOverlay__1QLiv"]',
             state="hidden", timeout=30000
         )
 
         # Глобальный поиск
-        page.click("div.DummySidebarSearch_searchInput__vPt0P")
+        page.click("div.DummySidebarSearch_searchInput__obU51")
         page.fill(SEARCH_INPUT, "Autotest Knoxville")
         page.click(SEARCH_SUBMIT)
         # Убеждаемся что контакты найдены
