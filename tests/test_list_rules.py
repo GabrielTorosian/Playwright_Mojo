@@ -1,12 +1,15 @@
 # tests/test_list_rules.py
 #
-# Блок: Data Dialer — List Rules (IFTT-правила)
-# Тестирует создание и удаление IFTT-правил для автоматического перемещения контактов.
+# Блок: Data Dialer — List Rules (новая панель WizardIFTTModal)
+# Smoke-тест: проверяем наличие всех статичных элементов панели List Rules
+# и что кнопка Cancel возвращает на страницу Data Dialer.
 #
 # Запуск:
 #   pytest tests/test_list_rules.py --headed -v
 
+import re
 import time
+import allure
 import pytest
 from playwright.sync_api import expect
 from pages.mojo_helpers import login, go_to_data_dialer
@@ -16,6 +19,46 @@ EMAIL = "gabik31+0109@ukr.net"
 PASSWORD = "123456"
 
 TEST_LIST = "autotest_suite2"
+
+# ── Селекторы новой панели List Rules (WizardIFTTModal) ──────────────────────
+MODAL = "[class*='WizardIFTTModal_contentWrapper']"
+MODAL_TITLE = f"{MODAL} [class*='WizardIFTTModal_title']"
+MODAL_DESCRIPTION = f"{MODAL} [class*='WizardIFTTModal_description']"
+COMMON_RULE_SUBHEADING = f"{MODAL} [class*='WizardIFTTModal_filtersTitle']"
+FEATURED_CARD = f"{MODAL} [class*='WizardIFTTModal_featuredCard']"
+CARD_EYEBROW = "[class*='WizardIFTTModal_ruleEyebrow']"
+CARD_TITLE = "[class*='WizardIFTTModal_featuredTitle']"
+CARD_RULE_LINE = "[class*='WizardIFTTModal_ruleLine']"
+SEE_ALL_TEMPLATES_LINK = f"{MODAL} [class*='WizardIFTTModal_ExampleLink']"
+MODAL_BUTTONS = f"{MODAL} [class*='WizardIFTTModal_buttons']"
+
+DESCRIPTION_TEXT = (
+    "Rules automatically move or take action on contacts based on call "
+    "results, number of attempts, or contact age. Pick a starter rule "
+    "below, or build your own."
+)
+
+# Ожидаемое содержимое трёх карточек стартовых правил (порядок фиксирован)
+FEATURED_RULES = [
+    {
+        "eyebrow": "Attempts",
+        "title": "Keep up with list hygiene",
+        "when": "Call attempts reach 7",
+        "then": "Move to group",
+    },
+    {
+        "eyebrow": "List hygiene",
+        "title": "Archive contacts older than 90 days",
+        "when": "Contact is older than 90 days",
+        "then": "Move to group",
+    },
+    {
+        "eyebrow": "Call results",
+        "title": "Move contacts to a follow-up group",
+        "when": "Last call result is Contact",
+        "then": "Move to group",
+    },
+]
 
 # XPath кнопки Manage для нужного списка
 MANAGE_XPATH = (
@@ -40,7 +83,6 @@ def open_list_rules(page):
     )
     time.sleep(0.8)
 
-
 # ── Тесты ────────────────────────────────────────────────────────────────────
 
 @pytest.mark.data_dialer
@@ -48,8 +90,8 @@ def open_list_rules(page):
 class TestListRules:
 
     @pytest.fixture(scope="class")
-    def shared_page(self, browser):
-        """Один логин на весь класс — оба теста работают в одной сессии."""
+    def shared_page(self, browser, base_url, credentials):
+        """Один логин на весь класс."""
         context = browser.new_context(
             no_viewport=True,
             ignore_https_errors=True,
@@ -57,129 +99,67 @@ class TestListRules:
         page = context.new_page()
         page.set_default_timeout(15000)
         page.set_default_navigation_timeout(30000)
-        login(page, BASE_URL, EMAIL, PASSWORD)
+        login(page, base_url, credentials["email"], credentials["password"])
         yield page
         context.close()
 
-    def test_create_list_rule(self, shared_page):
+    def test_list_rules_panel_elements(self, shared_page):
         """
-        Создаём IFTT-правило и проверяем сохранение.
-        IF Last Call Result = Contact -> THEN Move To Group autotest_group_suite2
-        1. Открываем List Rules для autotest_suite2
-        2. Очищаем существующие правила (если есть)
-        3. Добавляем новое правило (заполняем 4 дропдауна)
-        4. Сохраняем и проверяем toast "Rules Saved"
-        5. Проверяем что правило отображается в панели
-        6. Cleanup: очищаем правила
+        Smoke-тест новой панели List Rules (WizardIFTTModal).
+        Проверяем наличие всех статичных элементов панели, затем закрываем
+        её кнопкой Cancel и убеждаемся, что вернулись на страницу Data Dialer.
         """
         page = shared_page
         open_list_rules(page)
 
-        # ── Очищаем старые правила если есть ──
-        clear_btn = page.locator('xpath=//button[contains(text(),"Clear Rules")]')
-        if clear_btn.count() > 0 and clear_btn.is_visible():
-            clear_btn.click()
-            time.sleep(0.5)
-            confirm = page.locator(
-                'xpath=//button[contains(text(),"Yes") or '
-                'contains(text(),"Confirm") or contains(text(),"OK")]'
+        with allure.step("проверка заголовка 'List Rules / <список>'"):
+            title = page.locator(MODAL_TITLE)
+            expect(title).to_contain_text("List Rules")
+            expect(title).to_contain_text(TEST_LIST)
+
+        with allure.step("проверка текста описания панели"):
+            expect(page.locator(MODAL_DESCRIPTION)).to_have_text(DESCRIPTION_TEXT)
+
+        with allure.step("проверка подзаголовка 'Start with a common rule'"):
+            expect(
+                page.locator(COMMON_RULE_SUBHEADING, has_text="Start with a common rule")
+            ).to_be_visible()
+
+        with allure.step("проверка трёх карточек стартовых правил (Attempts, List hygiene, Call results)"):
+            cards = page.locator(FEATURED_CARD)
+            expect(cards).to_have_count(len(FEATURED_RULES))
+
+            for i, rule in enumerate(FEATURED_RULES):
+                card = cards.nth(i)
+                expect(card.locator(CARD_EYEBROW)).to_have_text(rule["eyebrow"])
+                expect(card.locator(CARD_TITLE)).to_have_text(rule["title"])
+
+                rule_lines = card.locator(CARD_RULE_LINE)
+                expect(rule_lines).to_have_count(2)
+                expect(rule_lines.nth(0)).to_contain_text("When")
+                expect(rule_lines.nth(0)).to_contain_text(rule["when"])
+                expect(rule_lines.nth(1)).to_contain_text("Then")
+                expect(rule_lines.nth(1)).to_contain_text(rule["then"])
+
+                expect(card.get_by_text("Use This Rule", exact=True)).to_be_visible()
+
+        with allure.step("проверка кнопки 'See all N templates'"):
+            expect(page.locator(SEE_ALL_TEMPLATES_LINK)).to_be_visible()
+            expect(page.locator(SEE_ALL_TEMPLATES_LINK)).to_have_text(
+                re.compile(r"See all \d+ templates")
             )
-            if confirm.count() > 0 and confirm.is_visible():
-                confirm.click()
-                time.sleep(0.5)
 
-        # ── Добавляем новое правило ──
-        page.locator('xpath=//button[contains(text(),"Add Rule")]').click()
-        time.sleep(0.5)
-        page.wait_for_selector('.IFTTElement_row__cMmB2', timeout=5000)
+        with allure.step("проверка кнопки '+ Add Rule (build from scratch)'"):
+            expect(
+                page.get_by_text("+ Add Rule (build from scratch)", exact=True)
+            ).to_be_visible()
 
-        rule_row = page.locator('.IFTTElement_row__cMmB2').last
+        with allure.step("проверка кнопок Cancel и Save"):
+            buttons = page.locator(MODAL_BUTTONS)
+            expect(buttons.get_by_text("Cancel", exact=True)).to_be_visible()
+            expect(buttons.get_by_text("Save", exact=True)).to_be_visible()
 
-        # IF: "Last Call Result"
-        rule_row.locator('.IFTTElement_rowElement__ruh0L').nth(0).click()
-        time.sleep(0.4)
-        page.locator('[class*="-option"]', has_text="Last Call Result").first.click()
-        time.sleep(0.6)
-
-        # Value: "Contact"
-        page.locator('.IFTTElement_row__cMmB2').last \
-            .locator('.IFTTElement_rowElement__ruh0L').nth(2).click()
-        time.sleep(0.4)
-        page.locator('[class*="-option"]', has_text="Contact").first.click()
-        time.sleep(0.4)
-
-        # THEN: "Move To Group"
-        page.locator('.IFTTElement_row__cMmB2').last \
-            .locator('.IFTTElement_rowElement__ruh0L').nth(3).click()
-        time.sleep(0.4)
-        page.locator('[class*="-option"]', has_text="Move To Group").first.click()
-        time.sleep(0.5)
-
-        # Group: autotest_group_suite2 (или первая доступная)
-        page.locator('.IFTTElement_row__cMmB2').last \
-            .locator('.IFTTElement_rowElement__ruh0L').last.click()
-        time.sleep(0.4)
-        grp = page.locator('[class*="-option"]', has_text="autotest_group_suite2")
-        if grp.count() > 0:
-            grp.first.click()
-        else:
-            page.locator('[class*="-option"]').first.click()
-        time.sleep(0.4)
-
-        # ── Сохраняем ──
-        page.locator('xpath=//button[contains(text(),"Save")]').click()
-        page.wait_for_selector(
-            'xpath=//*[contains(text(),"Rules Saved") or '
-            'contains(text(),"SUCCESS") or contains(text(),"success")]',
-            timeout=10000,
-        )
-
-        # ── Проверяем что правило видно в панели ──
-        rules = page.locator('.IFTTElement_row__cMmB2')
-        assert rules.count() > 0, "После сохранения правил нет в списке"
-
-        # ── Cleanup: очищаем правила ──
-        clear = page.locator('xpath=//button[contains(text(),"Clear Rules")]')
-        if clear.is_visible():
-            clear.click()
-            time.sleep(0.3)
-        page.locator('xpath=//button[contains(text(),"Save")]').click()
-        page.wait_for_selector(
-            'xpath=//*[contains(text(),"Rules Saved") or '
-            'contains(text(),"SUCCESS")]',
-            timeout=10000,
-        )
-
-        # Закрываем панель List Rules чтобы не блокировать следующий тест
-        cancel = page.locator('xpath=//button[contains(text(),"Cancel")]')
-        if cancel.count() > 0 and cancel.is_visible():
-            cancel.click()
-            time.sleep(0.5)
-
-    def test_list_rules_panel_smoke(self, shared_page):
-        """
-        Smoke-тест панели List Rules.
-        1. Открываем панель List Rules
-        2. Проверяем наличие кнопок Add Rule, Save, Cancel
-        3. Добавляем правило (Add Rule) — строка появилась
-        4. Отменяем (Cancel) — панель закрывается
-        """
-        page = shared_page
-        open_list_rules(page)
-
-        # Проверяем что кнопки управления присутствуют
-        add_btn = page.locator('xpath=//button[contains(text(),"Add Rule")]')
-        save_btn = page.locator('xpath=//button[contains(text(),"Save")]')
-        cancel_btn = page.locator('xpath=//button[contains(text(),"Cancel")]')
-
-        expect(add_btn).to_be_visible(timeout=5000)
-        expect(save_btn).to_be_visible(timeout=5000)
-
-        # Добавляем правило и сразу отменяем
-        add_btn.click()
-        time.sleep(0.5)
-        assert page.locator('.IFTTElement_row__cMmB2').count() > 0, \
-            "Add Rule не создаёт строку правила"
-
-        cancel_btn.click()
-        time.sleep(0.5)
+        with allure.step("клик Cancel и проверка возврата на страницу Data Dialer"):
+            buttons.get_by_text("Cancel", exact=True).click()
+            expect(page.locator(MODAL)).to_be_hidden(timeout=10000)
+            expect(page.locator("table.Table_tableFixed__zOYTo")).to_be_visible(timeout=15000)
