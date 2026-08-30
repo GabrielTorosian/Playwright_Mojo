@@ -57,7 +57,8 @@ SETTINGS_PAGES = [
 
 # ── Данные для Integrations ──────────────────────────────────────────────────
 INTEGRATIONS = [
-    ('Integrations',            'The Boomtown integration allows'),
+    ('Integrations',            'Connect your Claude AI account to Mojo Reports'),  # дефолтная вкладка при входе — AI Assistant
+    ('Boomtown',                'The Boomtown integration allows'),
     ('Follow Up Boss',          'Follow Up Boss'),
     ('Google',                  'Google'),
     ('MailChimp',               'The Mail Chimp integration'),
@@ -198,9 +199,15 @@ class TestNavigation:
         # INTEGRATIONS
         # ══════════════════════════════════════════════════════════════════
 
-        # Открыть Settings → Integrations (первый пункт — Boomtown)
+        # Открыть Settings → Integrations (дефолтная вкладка — AI Assistant)
         page.click('xpath=//img[@alt="Settings"]')
         page.click('xpath=//button[text()="Integrations"]')
+
+        title = page.locator(PAGES_HEADER)
+        actual_title = title.text_content(timeout=10000)
+        assert "connect your ai assistant" in actual_title.lower(), \
+            f"Интеграция 'AI Assistant': ожидался заголовок 'Connect Your AI Assistant', получено: '{actual_title}'"
+
         desc = page.locator(INTEGRATION_DESC).first
         actual = desc.text_content(timeout=10000)
         assert INTEGRATIONS[0][1].lower() in actual.lower(), \
