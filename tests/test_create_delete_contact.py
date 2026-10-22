@@ -10,6 +10,22 @@ import pytest
 from playwright.sync_api import expect
 from pages.mojo_helpers import go_to_data_dialer, logout, delete_group
 
+GROUP_NAME = "Autotest CrContact group DEL"
+
+
+def delete_group_if_exists(page, group_name):
+    """
+    Удаляет группу, если она осталась от прошлого упавшего прогона
+    (тест упал раньше шага удаления группы). Иначе создание группы
+    падает с 'A group with that name already exists'.
+    """
+    leftover = page.locator(
+        f'xpath=//div[@class="SelectFieldElement_name__G8DvC" and text()="{group_name}"]'
+    )
+    if leftover.count() > 0:
+        print(f"ℹ Группа '{group_name}' осталась от прошлого прогона — удаляем")
+        delete_group(page, group_name)
+
 
 @pytest.mark.contact
 class TestCreateDeleteContact:
@@ -22,6 +38,7 @@ class TestCreateDeleteContact:
 
         # ── 1. Перейти на Data Dialer ────────────────────────────────────
         go_to_data_dialer(page)
+        delete_group_if_exists(page, GROUP_NAME)
 
         # ── 2. Нажать "Create Contact" ───────────────────────────────────
         page.click('a[data-tip="Create Contact"]')
@@ -40,18 +57,17 @@ class TestCreateDeleteContact:
 
         # ── 4. Создать новую группу ──────────────────────────────────────
         page.click('button#select_field_3_add_btn')
-        page.fill('input[placeholder="Enter Name"]', 'Autotest CrContact group DEL')
+        page.fill('input[placeholder="Enter Name"]', GROUP_NAME)
         page.click('xpath=//button[text()="Save"]')
 
-        # Ждём пока группа появится в списке (это надёжнее чем ждать скрытия overlay)
-        page.wait_for_selector(
-            'xpath=//div[text()="Autotest CrContact group DEL"]',
-            timeout=30000
-        )
+        # Окно Create Contact Group должно закрыться (если не закрылось —
+        # сервер отказал, например 'A group with that name already exists')
+        expect(page.locator('input[placeholder="Enter Name"]')).to_be_hidden(timeout=30000)
+        expect(page.locator(f'xpath=//div[text()="{GROUP_NAME}"]').first).to_be_visible(timeout=15000)
 
         # ── 5. Нажать "Create Contact" ───────────────────────────────────
         page.click('xpath=//button[text()="Create Contact"]')
-        page.wait_for_load_state("networkidle")
+        # networkidle не используем: фоновые запросы не дают "тишины в сети"
 
         # Проверяем — имя контакта появилось на странице
         expect(page.locator('xpath=//div[text()="Autocreate Contact01"]')).to_be_visible(timeout=15000)
@@ -89,7 +105,7 @@ class TestCreateDeleteContact:
         page.wait_for_selector('xpath=//div[text()="Autocreate Contact01"]', state="hidden")
 
         # ── 8. Удалить группу ────────────────────────────────────────────
-        delete_group(page, "Autotest CrContact group DEL")
+        delete_group(page, GROUP_NAME)
 
         # ── 9. Логаут ────────────────────────────────────────────────────
         logout(page)

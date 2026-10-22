@@ -5,7 +5,7 @@
 #   1. Создание нового контакта (Calling List + Duplicate Phones)
 #   2. Редактирование Full Name, Address, Phone, Email
 #   3. Notes — создание записки
-#   4. Misc — заполнение и редактирование полей
+#   4. Custom Fields (бывш. Misc) — заполнение и редактирование полей
 #   5. Activities — создание Appointment/Task/Follow-Up
 #   6. History — проверка наличия записей
 #   7. Emails — отправка email
@@ -192,7 +192,8 @@ class TestContactSheet:
         # ── 7. Проверяем что контакт создан ────────────────────────────
         # Ждём пока URL сменится с /create-contact/ на /my-data/
         expect(page).to_have_url(re.compile(r'/my-data/'), timeout=15000)
-        page.wait_for_load_state("networkidle")
+        # networkidle не используем: на странице постоянно идут фоновые запросы,
+        # и "тишина в сети" может не наступить — ждём сам элемент
         # Имя контакта отображается в заголовке карточки
         expect(page.locator(f'text="{CONTACT_NAME}"').first).to_be_visible(timeout=10000)
         print(f"✓ Контакт '{CONTACT_NAME}' создан в листе 'autotest_suite1'")
@@ -273,25 +274,26 @@ class TestContactSheet:
         expect(page.locator(f'text="{NOTE_TEXT}"')).to_be_visible(timeout=5000)
         print("✓ Note создан и отображается в списке")
 
-    def test_misc_fields(self, shared_page):
+    def test_custom_fields(self, shared_page):
         """
-        Вкладка Misc: заполняем несколько полей, вносим изменения.
+        Вкладка Custom Fields (бывшая Misc, MW-3297): заполняем несколько полей, вносим изменения.
+        Переименована только надпись — CSS-классы остались ContactMiscField_*.
         """
         page = shared_page
         ensure_contact_open(page, CONTACT_NAME)
 
-        # Переходим на вкладку Misc
-        page.click('xpath=//button[contains(text(),"Misc")]')
-        page.wait_for_selector('[class*="Misc"], [class*="misc"]', timeout=10000)
-        print("✓ Вкладка Misc открылась")
+        # Переходим на вкладку Custom Fields
+        page.click('xpath=//button[contains(@class,"SecondaryContactTabs") and contains(text(),"Custom Fields")]')
+        expect(page.locator('[class*="ContactMiscField_container"]').first).to_be_visible(timeout=10000)
+        print("✓ Вкладка Custom Fields открылась, поля отображаются")
 
         # Заполняем первое доступное поле
         misc_inputs = page.locator('[class*="Misc"] input[type="text"], [class*="misc"] input')
         if misc_inputs.count() > 0:
-            misc_inputs.first.fill("autotest misc value")
+            misc_inputs.first.fill("autotest custom field value")
             misc_inputs.first.press("Tab")
             time.sleep(0.5)
-            print("✓ Misc поле заполнено")
+            print("✓ Custom Fields поле заполнено")
 
         # Сохраняем если есть кнопка Save
         save_btn = page.locator('xpath=//button[contains(text(),"Save")]')

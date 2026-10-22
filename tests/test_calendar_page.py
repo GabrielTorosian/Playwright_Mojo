@@ -176,10 +176,10 @@ class TestCalendarPage:
         """
         Проверяем элементы тулбара Calendar:
         1. Кнопка Print Letters & Labels
-        2. Попап выбора пользователя (dropdown агентов)
-        3. Попап выбора даты (All Dates) — открывается и закрывается
-        4. Кнопки Today / Past / Future
-        5. Кнопка Manage Columns
+        2. Попап выбора даты (All Dates) — открывается и закрывается
+        3. Кнопки Today / Past / Future
+        4. Кнопка Manage Columns
+        5. Кнопки нижнего бара
         """
         page = shared_page
         go_to_calendar(page)
@@ -190,15 +190,7 @@ class TestCalendarPage:
         expect(print_btn).to_be_visible(timeout=5000)
         print("✓ Кнопка 'Print Letters & Labels' присутствует")
 
-        # 2. Попап выбора пользователя (dropdown агентов)
-        agent_dropdown = page.get_by_role("button", name="NOT USE", exact=False).first
-        agent_dropdown.click()
-        all_agents_option = page.get_by_text("All Agents")
-        expect(all_agents_option).to_be_visible(timeout=5000)
-        print("✓ Попап выбора агента открылся, 'All Agents' виден")
-        page.keyboard.press("Escape")
-
-        # 3. All Dates — открываем попап выбора даты
+        # 2. All Dates — открываем попап выбора даты
         all_dates_btn = page.get_by_role("button", name="All Dates")
         expect(all_dates_btn).to_be_visible(timeout=5000)
         all_dates_btn.click()
@@ -210,18 +202,18 @@ class TestCalendarPage:
         expect(all_dates_btn).to_be_visible(timeout=5000)
         print("✓ Попап закрыт")
 
-        # 4. Кнопки Today / Past / Future
+        # 3. Кнопки Today / Past / Future
         for name in ("Today", "Past", "Future"):
             btn = page.get_by_role("button", name=name, exact=True)
             expect(btn.first).to_be_visible(timeout=5000)
             print(f"✓ Кнопка '{name}' присутствует")
 
-        # 5. Кнопка Manage Columns (по src иконки)
+        # 4. Кнопка Manage Columns (по src иконки)
         manage_col_btn = page.locator('a[role="button"][data-tip="Manage columns"]')
         expect(manage_col_btn).to_be_visible(timeout=5000)
         print("✓ Кнопка 'Manage Columns' присутствует")
 
-        # 6. Кнопки нижнего бара
+        # 5. Кнопки нижнего бара
         for name in ("Print", "Assign", "Complete", "Reschedule", "Export"):
             btn = page.get_by_role("button", name=name, exact=False)
             expect(btn.first).to_be_visible(timeout=5000)

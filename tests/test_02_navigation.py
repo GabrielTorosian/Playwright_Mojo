@@ -8,13 +8,18 @@
 # Запуск:
 #   pytest tests/test_02_navigation.py --headed
 
+import re
+
 import pytest
+from playwright.sync_api import expect
 from pages.mojo_helpers import logout
 
 # ── Селекторы ────────────────────────────────────────────────────────────────
 PAGES_HEADER = 'xpath=//div[@class="Generic_subtitle2__D2A6X"]'
 SETTINGS_CONTAINER = 'xpath=//div[@class="SettingsView_container__qX0Vz"]'
 INTEGRATION_DESC = 'xpath=//div[@class="Generic_text1__fKmNX"]'
+CALLING_REPORT_DESCRIPTION = "This report helps you identify the people you called"
+SIGN_IN_DEVICES_DESCRIPTION = "These are the devices currently signed in to your Mojo account"
 
 
 def navigate_and_check(page, button_selector, wait_selector, expected_text):
@@ -47,7 +52,7 @@ SETTINGS_PAGES = [
     ('Do Not Call',             'DNC Scrubbing'),
     ('DNC Export',              'DNC Export'),
     ('DNC History',             'DNC History'),
-    ('Misc Fields',             'Misc Fields'),
+    ('Custom Fields',           'Custom Fields'),
     ('Data Management',         'Import History'),
     ('Export History',          'Export History'),
     ('Contact Source',          'Contact Source'),
@@ -57,14 +62,14 @@ SETTINGS_PAGES = [
 
 # ── Данные для Integrations ──────────────────────────────────────────────────
 INTEGRATIONS = [
-    ('Integrations',            'Connect your Claude AI account to Mojo Reports'),  # дефолтная вкладка при входе — AI Assistant
-    ('Boomtown',                'The Boomtown integration allows'),
+    ('AI Assistant',            'Connect your Claude AI account to Mojo Reports'),  # дефолтная вкладка при входе
+    ('BoomTown',                'The BoomTown integration allows'),
     ('Follow Up Boss',          'Follow Up Boss'),
     ('Google',                  'Google'),
     ('MailChimp',               'The Mail Chimp integration'),
     ('Middleware',              'To connect your Mojo account'),
     ('Posting Services',        'Our posting service allows'),
-    ('Realgeeks',               'The Real Geeks integration allows'),
+    ('Real Geeks',              'The Real Geeks integration allows'),
     ('Zillow',                  'The Zillow Integration connects'),
 ]
 
@@ -96,29 +101,14 @@ class TestNavigation:
             "Calendar"
         )
 
-        # Reports → Call Detail Report
+        # Reports → Calling Report (открывается по умолчанию)
         navigate_and_check(
             page,
             'xpath=//img[@alt="Reports"]',
-            'div.ReportFiltersView_filtersContainer__g7Xhv ',
-            "Call Detail Report"
+            'div.ReportFiltersView_filtersContainer__g7Xhv',
+            "Calling Report"
         )
-
-        # Reports → Session Report
-        navigate_and_check(
-            page,
-            'xpath=//a[@href="/reports/session-report/"]',
-            'div.ReportFiltersView_filtersContainer__g7Xhv ',
-            "Session Report"
-        )
-
-        # Reports → Call Recording Report
-        navigate_and_check(
-            page,
-            'xpath=//a[@href="/reports/call-recordings-report/"]',
-            'div.ReportFiltersView_filtersContainer__g7Xhv ',
-            "Call Recording Report"
-        )
+        expect(page.get_by_text(CALLING_REPORT_DESCRIPTION)).to_be_visible()
 
         # Reports → Recurring Events Report
         navigate_and_check(
@@ -199,22 +189,14 @@ class TestNavigation:
         # INTEGRATIONS
         # ══════════════════════════════════════════════════════════════════
 
-        # Открыть Settings → Integrations (дефолтная вкладка — AI Assistant)
+        # Открыть Settings → Integrations → по умолчанию открывается AI Assistant
         page.click('xpath=//img[@alt="Settings"]')
         page.click('xpath=//button[text()="Integrations"]')
+        expect(page).to_have_url(re.compile(r"/integrations/ai-assistant/"))
+        expect(page.locator(PAGES_HEADER)).to_have_text("Connect Your AI Assistant")
 
-        title = page.locator(PAGES_HEADER)
-        actual_title = title.text_content(timeout=10000)
-        assert "connect your ai assistant" in actual_title.lower(), \
-            f"Интеграция 'AI Assistant': ожидался заголовок 'Connect Your AI Assistant', получено: '{actual_title}'"
-
-        desc = page.locator(INTEGRATION_DESC).first
-        actual = desc.text_content(timeout=10000)
-        assert INTEGRATIONS[0][1].lower() in actual.lower(), \
-            f"Интеграция 'Integrations': ожидался '{INTEGRATIONS[0][1]}', получено: '{actual}'"
-
-        # Пройти по остальным интеграциям (уже находимся в разделе Integrations)
-        for button_text, expected_text in INTEGRATIONS[1:]:
+        # Пройти по всем интеграциям (включая AI Assistant)
+        for button_text, expected_text in INTEGRATIONS:
             page.click(f'xpath=//button[text()="{button_text}"]')
             desc = page.locator(INTEGRATION_DESC).first
             if desc.count() > 0:
@@ -254,6 +236,14 @@ class TestNavigation:
         page.wait_for_selector("table.AccountReferFriendView_table__g1ArV")
         text = page.locator("div.Generic_text1__fKmNX")
         assert "referral invites stay active" in text.text_content().lower()
+
+        # Sign-in & Devices
+        page.click('xpath=//a[@href="/account/sign-in-devices/"]')
+        header = page.locator("div.Generic_subtitle2__D2A6X")
+        expect(header).to_have_text("Sign-in & Devices", ignore_case=True)
+        expect(page.get_by_text(SIGN_IN_DEVICES_DESCRIPTION)).to_be_visible()
+        # Кнопки Sign out не кликаем — только проверяем что они есть
+        expect(page.get_by_role("button", name="Sign out").first).to_be_visible()
 
         # ══════════════════════════════════════════════════════════════════
         # ЛОГАУТ

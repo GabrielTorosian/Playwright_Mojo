@@ -1,6 +1,14 @@
 # conftest.py
+import sys
+
 import allure
 import pytest
+
+# При выводе в pipe (| Tee-Object, CI) Windows использует cp1252 —
+# print() с кириллицей падает с UnicodeEncodeError. Принудительно UTF-8.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
 
 BASE_URL = "https://lb11.mojosells.com"
 EMAIL = "gabik31+0109@ukr.net"
@@ -12,7 +20,9 @@ def browser_type_launch_args(browser_type_launch_args):
     return {
         **browser_type_launch_args,
         "slow_mo": 300,
-        "args": ["--start-maximized"],
+        # --window-size нужен для headless: там --start-maximized не работает,
+        # и окно открывается маленьким — элементы шапки уходят за край экрана
+        "args": ["--start-maximized", "--window-size=1920,1080"],
     }
 
 
