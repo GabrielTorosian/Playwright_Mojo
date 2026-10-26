@@ -11,6 +11,8 @@
 # Запуск:
 #   pytest tests/test_leadstore_page.py --headed
 
+import re
+
 import pytest
 from playwright.sync_api import expect
 from pages.mojo_helpers import login
@@ -46,7 +48,11 @@ US_DISCLAIMER_TEXT = (
 VENDOR_HEADING = "div.LeadstoreHomeMainView_third__NRfwu"
 VENDOR_HEADING_TEXT = "Already have a lead vendor?"
 VENDOR_CLICK_HERE_LINK = 'div.LeadstoreHomeMainView_fourth__A2nGk a:has-text("Click here")'
-VENDOR_CLICK_HERE_HREF = "https://mojodialersupport.mojosells.com/portal/en/kb/articles/what-data-vendors-can-auto-post-to-mojo"
+# KB переехала со старого портала mojodialersupport на собственную KB Mojo (data11).
+# Ссылка ведёт на старый slug статьи, KB перенаправляет на актуальный адрес.
+VENDOR_CLICK_HERE_HREF = "https://data11.mojosells.com/kb/articles/what-data-vendors-can-auto-post-to-mojo"
+VENDOR_ARTICLE_URL = "https://data11.mojosells.com/kb/articles/posting-data-from-lead-vendors"
+VENDOR_ARTICLE_TITLE = "Posting Data from Lead Vendors"
 
 # Ссылка внутри попапа Limited License ("...click here.") — ведёт на Terms and Conditions.
 # href в DOM указывает на /terms_and_conditions.html, который редиректит на /terms-and-conditions/.
@@ -212,7 +218,8 @@ class TestLeadstorePage:
 
         # Клик реально открывает нужную страницу в новой вкладке
         vendor_page = click_and_get_new_tab(page, link)
-        expect(vendor_page).to_have_url(VENDOR_CLICK_HERE_HREF)
+        expect(vendor_page).to_have_url(VENDOR_ARTICLE_URL)
+        expect(vendor_page).to_have_title(re.compile(re.escape(VENDOR_ARTICLE_TITLE)))
         vendor_page.close()
         print("[OK] Vendor 'Click here' link -- opens correct page")
 

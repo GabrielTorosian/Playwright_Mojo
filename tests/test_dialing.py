@@ -5,6 +5,7 @@
 #   1. Call Wizard — открытие, UI элементы
 #   2. Caller ID — выбор, проверка одобренных, Static/Rotation
 #   3. Approved Phones Guard — защита от звонков на неодобренные номера
+#      (проверка колонки Phone повторяется перед КАЖДЫМ запуском обзвона)
 #   4. Power Dialer — запуск, линии, кнопки управления
 #   5. Call Results UI — кнопки результатов звонка
 #   6. Pause / Resume — пауза и возобновление
@@ -20,6 +21,8 @@
 #
 # Запуск:
 #   pytest tests/test_dialing.py --headed
+
+import re
 
 import pytest
 import time
@@ -41,8 +44,58 @@ APPROVED_CALLER_IDS = ["6177786790"]
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
-def select_test_list(page):
-    """Выбирает autotest_suite2 в сайдбаре Data Dialer."""
+# True только если номера листа проверены сразу перед открытием Call Wizard.
+# Без этого start_power_dialer / Click To Call не запустятся.
+_phones_verified = False
+
+
+def normalize_phone(text):
+    """'(617) 723-1818' / '1-617-723-1818' → '6177231818'."""
+    digits = re.sub(r"\D", "", text or "")
+    if len(digits) == 11 and digits.startswith("1"):
+        digits = digits[1:]
+    return digits
+
+
+def assert_list_phones_approved(page):
+    """
+    Читает колонку Phone таблицы выбранного листа и падает, если в листе есть
+    номер не из APPROVED_PHONES. Вызывается ПЕРЕД каждым запуском обзвона —
+    в лист может попасть чужой номер (так было с 702-885-6951).
+    """
+    table = page.locator("table.Table_tableFixed__zOYTo")
+    headers = [h.strip() for h in table.locator("thead th").all_inner_texts()]
+    assert "Phone" in headers, f"Колонка Phone не найдена в таблице: {headers}"
+    phone_idx = headers.index("Phone")
+
+    # Все контакты листа должны быть на одной странице — иначе часть номеров не проверить
+    pagination = page.locator("div.Table_paginationControlsSection__iwjtM").first.inner_text()
+    m = re.search(r"(\d+)\s*-\s*(\d+)\s*of\s*(\d+)", pagination)
+    assert m, f"Не удалось прочитать пагинацию: {pagination!r}"
+    shown, total = int(m.group(2)), int(m.group(3))
+    assert shown == total, \
+        f"В листе {TEST_LIST} {total} контактов, на странице видно {shown} — не все номера проверены"
+
+    rows = table.locator("tbody tr")
+    assert rows.count() > 0, f"Лист {TEST_LIST} пустой"
+    bad = []
+    for i in range(rows.count()):
+        cell = rows.nth(i).locator("td").nth(phone_idx).inner_text()
+        phone = normalize_phone(cell)
+        if phone and phone not in APPROVED_PHONES:
+            bad.append(cell.strip())
+    assert not bad, \
+        f"ЗВОНИТЬ НЕЛЬЗЯ: в листе {TEST_LIST} неодобренные номера {bad}. Обзвон заблокирован."
+    return rows.count()
+
+
+def select_test_list(page, check_phones=False):
+    """
+    Выбирает autotest_suite2 в сайдбаре Data Dialer.
+    check_phones=True — перед запуском обзвона: проверяет номера листа.
+    """
+    global _phones_verified
+    _phones_verified = False
     dismiss_react_modal(page)
     dismiss_toasts(page)
     wait_for_toast_gone(page)
@@ -53,6 +106,9 @@ def select_test_list(page):
             break
     time.sleep(0.5)
     page.wait_for_selector("table.Table_tableFixed__zOYTo tbody tr", timeout=15000)
+    if check_phones:
+        assert_list_phones_approved(page)
+        _phones_verified = True
 
 
 def dismiss_confirm_overlay(page):
@@ -196,6 +252,8 @@ def verify_caller_id(page):
 
 def start_power_dialer(page):
     """Нажимает Start Power Dialer и ждёт запуска сессии."""
+    assert _phones_verified, \
+        "Номера листа не проверены — вызовите select_test_list(page, check_phones=True). Обзвон заблокирован."
     verify_caller_id(page)
     dismiss_toasts(page)
     wait_for_toast_gone(page)
@@ -385,23 +443,12 @@ class TestDialingSessions:
         close_call_wizard(page)
 
     def test_approved_phones_guard(self, shared_page):
-        """Все номера в таблице контактов -- только одобренные."""
+        """Все номера в листе -- только одобренные (читаем колонку Phone)."""
         page = shared_page
         ensure_on_data_dialer(page)
         select_test_list(page)
-
-        rows = page.locator("table.Table_tableFixed__zOYTo tbody tr")
-        assert rows.count() > 0, f"Лист {TEST_LIST} пустой"
-        print(f"[i] Контактов в таблице: {rows.count()}")
-
-        tel_links = page.locator('table.Table_tableFixed__zOYTo a[href^="tel:"]')
-        for i in range(tel_links.count()):
-            href = tel_links.nth(i).get_attribute('href') or ''
-            phone = href.replace('tel:', '').replace('-', '').replace(' ', '').strip()
-            if phone and len(phone) >= 7:
-                assert phone in APPROVED_PHONES, \
-                    f"NELZYA ZVONIT: {phone} ne v APPROVED_PHONES"
-        print("[OK] Все номера в таблице -- одобренные")
+        count = assert_list_phones_approved(page)
+        print(f"[OK] Все {count} номеров в листе -- одобренные")
 
     def test_mojo_voice_option(self, shared_page):
         """Use Mojo Voice, Use Call Hammer, Save Calling Profile присутствуют."""
@@ -452,7 +499,7 @@ class TestDialingSessions:
         """Power Dialer запускается: DialerContainer, 3 линии, Stop/Pause, Call Results."""
         page = shared_page
         ensure_on_data_dialer(page)
-        select_test_list(page)
+        select_test_list(page, check_phones=True)
         open_call_wizard(page)
 
         enable_mojo_voice(page)
@@ -493,7 +540,7 @@ class TestDialingSessions:
         """Все кнопки результатов звонка в активной сессии."""
         page = shared_page
         ensure_on_data_dialer(page)
-        select_test_list(page)
+        select_test_list(page, check_phones=True)
         open_call_wizard(page)
         enable_mojo_voice(page)
         start_power_dialer(page)
@@ -514,7 +561,7 @@ class TestDialingSessions:
         """Pause ставит дайлер на паузу, Resume возобновляет."""
         page = shared_page
         ensure_on_data_dialer(page)
-        select_test_list(page)
+        select_test_list(page, check_phones=True)
         open_call_wizard(page)
         enable_mojo_voice(page)
         start_power_dialer(page)
@@ -559,7 +606,7 @@ class TestDialingSessions:
         """Stop корректно завершает dialer-сессию."""
         page = shared_page
         ensure_on_data_dialer(page)
-        select_test_list(page)
+        select_test_list(page, check_phones=True)
         open_call_wizard(page)
         enable_mojo_voice(page)
         start_power_dialer(page)
@@ -590,7 +637,7 @@ class TestDialingSessions:
         """Click To Call запускает CTC-сессию."""
         page = shared_page
         ensure_on_data_dialer(page)
-        select_test_list(page)
+        select_test_list(page, check_phones=True)
         open_call_wizard(page)
         enable_mojo_voice(page)
 
@@ -599,6 +646,7 @@ class TestDialingSessions:
         dismiss_react_modal(page)
         dismiss_toasts(page)
 
+        assert _phones_verified, "Номера листа не проверены. Обзвон заблокирован."
         start_btn = page.locator('a:has-text("Start Click To Call")').first
         assert start_btn.is_visible(), "Кнопка Start Click To Call не видна"
         start_btn.click(force=True)

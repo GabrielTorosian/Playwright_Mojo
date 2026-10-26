@@ -11,8 +11,8 @@ import time
 import pytest
 from playwright.sync_api import expect
 from pages.mojo_helpers import (
-    go_to_data_dialer, logout, delete_list,
-    close_share_agent_popup, close_skip_tracer_popup,
+    go_to_data_dialer, logout, delete_list, delete_list_if_exists,
+    close_share_agent_popup, close_skip_tracer_popup, auto_dismiss_skip_trace_offer,
     SEARCH_FIELD, SEARCH_INPUT, SEARCH_SUBMIT, VIEW_ALL_RESULTS, SEARCH_CLOSE,
 )
 
@@ -39,10 +39,15 @@ class TestImportFile:
         Step 5: Завершить импорт
         + Поиск импортированных контактов
         + Удаление созданного списка
+        (лист-остаток от прошлого упавшего прогона удаляется в начале)
         """
         page = logged_in_page
 
+        # Окно "skip trace the list?" закрывается автоматически, когда бы ни всплыло
+        auto_dismiss_skip_trace_offer(page)
+
         go_to_data_dialer(page)
+        delete_list_if_exists(page, LIST_NAME)
 
         # ── Step 1: Import → Choose File ─────────────────────────────────
         page.click("button#import_file")

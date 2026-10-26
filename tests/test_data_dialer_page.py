@@ -70,7 +70,8 @@ class TestDataDialerPage:
         # проверка отображения кнопки Map View
         with allure.step("выбрать лист Property List"):
             page.locator('//div[@class="SelectFieldElement_name__G8DvC" and contains(.,"Property List")]').click()
-            page.wait_for_load_state("networkidle", timeout=15000)
+            # networkidle не используем: фоновые запросы не дают "тишины в сети" —
+            # следующий шаг сам ждёт появления кнопки Map View
 
         with allure.step("проверка что кнопка Map View отображается"):
             expect(page.locator('//button[contains(.,"Map View")]')).to_be_visible(timeout=15000)

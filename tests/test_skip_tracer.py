@@ -9,7 +9,14 @@
 import time
 import pytest
 from playwright.sync_api import expect
-from pages.mojo_helpers import go_to_data_dialer, logout, delete_list, close_skip_tracer_popup
+from pages.mojo_helpers import (
+    go_to_data_dialer, logout, delete_list, delete_list_if_exists, close_skip_tracer_popup,
+)
+
+# Модалка Skip Tracer (редизайн): выбор режима + результаты + выбор листа
+ST_ADDRESS_INPUT = 'input[class*="SkipTracerModalStyles_addressInput"]'
+ST_RESULT_ROW = 'div[class*="SkipTracerModalStyles_recordRow"]'
+MODAL_CONFIRM_BTN = 'button[class*="GenericModal_confirmButton"]'
 
 ST_ADDRESS = "9100 Thermal St Oakland, CA 94605"
 LIST_NAME = "01STonetime lookup autotestDEL"
@@ -38,15 +45,39 @@ def create_list(page, list_name: str):
         share_popup.click()
 
 
+def select_address_suggestion(page, addr_input, address: str, attempts: int = 3):
+    """
+    Вводит адрес и кликает первую подсказку Google Places (.pac-item).
+    Skip Tracer ищет только по адресу, выбранному из подсказки (кнопка Search
+    с вручную введённым адресом ничего не находит). Google Places — внешний
+    сервис и иногда не показывает подсказки с первого раза, поэтому повторяем ввод.
+    """
+    suggestion = page.locator('.pac-item').first
+    for attempt in range(1, attempts + 1):
+        addr_input.click()
+        addr_input.fill("")
+        # type — посимвольный ввод, именно он запускает автокомплит Google
+        addr_input.type(address, delay=50)
+        try:
+            suggestion.wait_for(state="visible", timeout=8000)
+            suggestion.click()
+            return
+        except Exception:
+            print(f"ℹ Подсказки Google Places не появились (попытка {attempt}/{attempts})")
+    raise AssertionError(
+        f"Google Places не показал подсказки для '{address}' за {attempts} попытки"
+    )
+
+
 @pytest.mark.skip_tracer
 class TestSkipTracer:
 
     def test_one_time_lookup(self, logged_in_page):
         """
         Сценарий: Skip Tracer One Time Lookup.
-        1. Создать список
+        1. Удалить лист-остаток от прошлых прогонов, создать список
         2. Skip Tracer → One Time Lookup → ввести адрес
-        3. Дождаться результатов → Continue → выбрать список → Save
+        3. Дождаться результатов → Create Contact → выбрать список → Save
         4. Проверить адрес в Contact Sheet
         5. Удалить контакт
         6. Удалить список
@@ -54,6 +85,7 @@ class TestSkipTracer:
         page = logged_in_page
 
         go_to_data_dialer(page)
+        delete_list_if_exists(page, LIST_NAME)
 
         # ── Создать список ───────────────────────────────────────────────
         create_list(page, LIST_NAME)
@@ -64,46 +96,28 @@ class TestSkipTracer:
             'xpath=//button[@class="Button_btn__XJ1bx Button_btnBlue__ZEfxB '
             'MainView_btn__z40x7" and text()="Skip Tracer"]'
         )
-        # Если аккаунт ещё не выбирал режим ST в этой сессии — сначала открывается
-        # чузер "Start your Skip Trace" с кнопками One Time Lookup / Batch Lookup.
-        # Если режим уже запомнен — форма открывается сразу, чузера нет.
-        try:
-            page.locator('button:has-text("One Time Lookup")').click(timeout=4000)
-        except Exception:
-            pass
-        page.wait_for_selector('xpath=//div[text()="One Time Lookup"]')
+        # Модалка "Start Your Skip Trace": поле адреса One Time Lookup сразу на экране
+        addr_input = page.locator(ST_ADDRESS_INPUT)
+        expect(addr_input).to_be_visible(timeout=15000)
 
-        # Ввести адрес (type симулирует ввод по клавишам — запускает Google Places автокомплит)
-        addr_input = page.locator('input[class*="SkipTracerModalStyles_addressInput"]')
-        addr_input.click()
-        addr_input.type(ST_ADDRESS, delay=50)
-        # Выбрать первый вариант из Google Places dropdown
-        page.locator('.pac-item').first.click()
+        # Ввести адрес и выбрать подсказку Google Places — поиск запускается сам
+        select_address_suggestion(page, addr_input, ST_ADDRESS)
 
-        # Ждём пока ST найдёт результаты
-        page.wait_for_selector(
-            'div.SkipTracerModalStyles_resultGrid__otxpM',
-            timeout=15000
-        )
-        time.sleep(1)
+        # Ждём результаты: "N CONTACTS FOUND" + строки найденных контактов
+        expect(page.locator(ST_RESULT_ROW).first).to_be_visible(timeout=30000)
+        found = page.locator(ST_RESULT_ROW).count()
+        print(f"✓ Skip Tracer нашёл контактов: {found}")
 
-        # ── Continue → выбрать список → Save ─────────────────────────────
-        page.click(
-            'xpath=//button[@class="GenericModal_button__I7HfS  '
-            'GenericModal_confirmButton__GH847" and text()="Continue"]'
-        )
+        # ── Create Contact → выбрать список → Save ───────────────────────
+        page.locator(MODAL_CONFIRM_BTN, has_text="Create Contact").click()
+        expect(page.get_by_text("Select Calling List / Group")).to_be_visible(timeout=15000)
 
-        # Открыть поиск по спискам и выбрать наш список
-        page.click(
-            'xpath=//div[@class="SelectField_headerTitle__90PkD" '
-            'and text()="Calling Lists"]/../..//'
-            'img[@src="/static/media/menu-search-icon.e72effb2b59223e122f09.svg"]'
-        )
-        page.fill('input.SelectField_searchBar__TgnlL', LIST_NAME)
-        page.click(
-            f'xpath=//div[@class="SelectField_selectFieldContentWrapperWhite__jgwoA"]'
-            f'//div[ text()="{LIST_NAME}"]'
-        )
+        # Выбираем наш список в колонке Calling Lists модалки
+        page.locator(
+            'div[class*="SelectField_selectFieldContentWrapperWhite"] '
+            'div[class*="SelectFieldElement_name"]',
+            has_text=LIST_NAME,
+        ).first.click()
 
         # Выбрать "Keep Both" если появился дропдаун
         try:
@@ -113,10 +127,7 @@ class TestSkipTracer:
             pass
 
         # Save
-        page.click(
-            'xpath=//button[@class="GenericModal_button__I7HfS  '
-            'GenericModal_confirmButton__GH847" and text()="Save"]'
-        )
+        page.locator(MODAL_CONFIRM_BTN, has_text="Save").click()
 
         # Ждём закрытия модального окна и загрузки Contact Sheet
         page.wait_for_selector('div.GenericModal_mainContainer__9inrP', state='hidden', timeout=15000)

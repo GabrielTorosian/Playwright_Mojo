@@ -115,6 +115,23 @@ def close_skip_tracer_popup(page: Page):
         pass  # Попап не появился — ничего не делаем
 
 
+def auto_dismiss_skip_trace_offer(page: Page):
+    """
+    Окно "Would you like to skip trace the list?" после импорта может всплыть
+    с задержкой в ЛЮБОЙ момент и перекрыть экран (клик по панели поиска,
+    удаление листа и т.д.). Регистрируем обработчик Playwright: перед каждым
+    действием он проверяет, не появилось ли окно, и нажимает No.
+    """
+    offer = page.locator("div.GenericModal_mainContainer__9inrP",
+                         has_text="Would you like to skip trace")
+
+    def _dismiss():
+        offer.locator("button", has_text="No").click()
+        print("ℹ Окно 'skip trace the list?' закрыто (No)")
+
+    page.add_locator_handler(offer, _dismiss)
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # НАВИГАЦИЯ
 # ══════════════════════════════════════════════════════════════════════════════
@@ -198,15 +215,37 @@ def delete_list(page: Page, list_name: str):
     2. Ищет список по имени
     3. Нажимает ... (manage) → Delete → подтверждает
     """
-    page.click(
-        'xpath=//button[@id="calling_list"]//div[@class="SelectField_manageWrapper__p18FR"]'
-        '/img[@alt="search-icon"]'
-    )
-    page.fill('input.SelectField_searchBarSide__gJckk', list_name)
+    # Иконка поиска работает как переключатель — кликаем, только если поиск
+    # ещё не открыт (иначе повторный вызов delete_list закроет поле поиска)
+    search_input = page.locator('input.SelectField_searchBarSide__gJckk')
+    if not search_input.is_visible():
+        page.click(
+            'xpath=//button[@id="calling_list"]//div[@class="SelectField_manageWrapper__p18FR"]'
+            '/img[@alt="search-icon"]'
+        )
+    search_input.fill(list_name)
     page.click("div.SelectFieldElement_buttonsContainer__aDkuy")
     page.click('xpath=//div[@class="SelectFieldElement_menuItem__kTdef" and text()="Delete"]')
-    page.click("button.GenericModal_button__I7HfS.GenericModal_confirmButton__GH847")
+    # Кнопку подтверждения ищем по тексту "Delete": у кнопки "Yes" в окне
+    # "Would you like to skip trace the list?" тот же класс confirmButton
+    page.locator("button.GenericModal_confirmButton__GH847", has_text="Delete").click()
     page.wait_for_selector("div.GenericModal_mainContainer__9inrP", state="hidden", timeout=15000)
+
+
+def delete_list_if_exists(page: Page, list_name: str):
+    """
+    Удаляет лист(ы), оставшиеся от прошлых упавших прогонов (тест упал раньше
+    шага удаления). Иначе каждый прогон создаёт ещё один лист с тем же именем.
+    """
+    leftover = page.locator(
+        f'xpath=//div[@class="SelectFieldElement_name__G8DvC" and text()="{list_name}"]'
+    )
+    for _ in range(5):
+        if leftover.count() == 0:
+            return
+        print(f"ℹ Лист '{list_name}' остался от прошлого прогона — удаляем")
+        delete_list(page, list_name)
+        time.sleep(1)
 
 
 def delete_group(page: Page, group_name: str):
